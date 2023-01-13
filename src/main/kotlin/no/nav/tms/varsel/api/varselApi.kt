@@ -18,10 +18,12 @@ import io.ktor.server.routing.routing
 import io.ktor.util.pipeline.PipelineContext
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.idporten.sidecar.LoginLevel
 import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
-import no.nav.tms.varsel.api.config.jsonConfig
+import no.nav.tms.varsel.api.varsel.VarselConsumer
+import no.nav.tms.varsel.api.varsel.varsel
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
@@ -60,7 +62,7 @@ fun Application.varselApi(
     }
 
     routing {
-        health(collectorRegistry)
+        meta(collectorRegistry)
 
         authenticate {
             varsel(varselConsumer)
@@ -81,3 +83,10 @@ val PipelineContext<Unit, ApplicationCall>.accessToken: String
 
 val PipelineContext<Unit, ApplicationCall>.loginLevel
     get() = IdportenUserFactory.createIdportenUser(call).loginLevel
+
+fun jsonConfig(): Json {
+    return Json {
+        this.ignoreUnknownKeys = true
+        this.encodeDefaults = true
+    }
+}

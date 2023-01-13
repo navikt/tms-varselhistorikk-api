@@ -9,7 +9,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.micrometer.prometheus.PrometheusMeterRegistry
 
-fun Route.health(collectorRegistry: PrometheusMeterRegistry) {
+fun Route.meta(collectorRegistry: PrometheusMeterRegistry) {
     get("/internal/isAlive") {
         call.respondText(text = "ALIVE", contentType = ContentType.Text.Plain)
     }

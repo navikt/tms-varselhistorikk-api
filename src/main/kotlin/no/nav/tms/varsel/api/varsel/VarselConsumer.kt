@@ -1,13 +1,13 @@
 @file:UseSerializers(ZonedDateTimeSerializer::class)
 
-package no.nav.tms.varsel.api
+package no.nav.tms.varsel.api.varsel
 
 import io.ktor.client.HttpClient
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.varsel.api.config.ZonedDateTimeSerializer
-import no.nav.tms.varsel.api.config.get
+import no.nav.tms.varsel.api.ZonedDateTimeSerializer
+import no.nav.tms.varsel.api.get
 import java.time.ZonedDateTime
 
 class VarselConsumer(

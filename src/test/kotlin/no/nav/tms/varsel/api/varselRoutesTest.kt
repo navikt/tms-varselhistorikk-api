@@ -30,8 +30,12 @@ import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
 import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.varsel.api.config.HttpClientBuilder
-import no.nav.tms.varsel.api.config.jsonConfig
+import no.nav.tms.varsel.api.varsel.Beskjed
+import no.nav.tms.varsel.api.varsel.InaktivtVarsel
+import no.nav.tms.varsel.api.varsel.Innboks
+import no.nav.tms.varsel.api.varsel.Oppgave
+import no.nav.tms.varsel.api.varsel.VarselConsumer
+import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 
 class varselRoutesTest {

@@ -5,8 +5,7 @@ import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
-import no.nav.tms.varsel.api.config.Environment
-import no.nav.tms.varsel.api.config.HttpClientBuilder
+import no.nav.tms.varsel.api.varsel.VarselConsumer
 
 fun main() {
     val environment = Environment()

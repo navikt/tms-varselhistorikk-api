@@ -1,4 +1,4 @@
-package no.nav.tms.varsel.api.config
+package no.nav.tms.varsel.api
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

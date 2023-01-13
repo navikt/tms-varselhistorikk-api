@@ -1,5 +1,8 @@
 package no.nav.tms.varsel.api
 
+import no.nav.tms.varsel.api.varsel.Beskjed
+import no.nav.tms.varsel.api.varsel.Innboks
+import no.nav.tms.varsel.api.varsel.Oppgave
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
