@@ -32,13 +32,6 @@ spec:
     outbound:
       rules:
         - application: dittnav-event-handler
-        - application: dittnav-event-aggregator
-    inbound:
-      rules:
-        - namespace: personbruker
-          application: innloggingsstatus
-        - namespace: personbruker
-          application: nav-dekoratoren-api
   ingresses:
     - "https://www.dev.nav.no/tms-varsel-api"
   resources:
