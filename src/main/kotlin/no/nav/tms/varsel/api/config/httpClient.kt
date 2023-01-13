@@ -14,7 +14,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.URL
 
 object HttpClientBuilder {
 
@@ -28,11 +27,10 @@ object HttpClientBuilder {
     }
 }
 
-suspend inline fun <reified T> HttpClient.getForIdent(url: URL, fnr: String, accessToken: String): T = withContext(Dispatchers.IO) {
+suspend inline fun <reified T> HttpClient.get(url: String, accessToken: String): T = withContext(Dispatchers.IO) {
     request {
         url(url)
         method = HttpMethod.Get
-        header("fodselsnummer", fnr)
         header(HttpHeaders.Authorization, "Bearer $accessToken")
-    }
-}.body()
+    }.body()
+}

@@ -1,15 +1,12 @@
 package no.nav.tms.varsel.api
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.header
-import io.ktor.client.request.request
-import io.ktor.client.request.url
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.metrics.micrometer.MicrometerMetrics
@@ -18,14 +15,13 @@ import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
+import io.ktor.util.pipeline.PipelineContext
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import no.nav.tms.token.support.idporten.sidecar.LoginLevel
 import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
+import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 import no.nav.tms.varsel.api.config.jsonConfig
-
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
@@ -80,10 +76,8 @@ private fun Application.configureShutdownHook(httpClient: HttpClient) {
     }
 }
 
-suspend inline fun <reified T> HttpClient.get(url: String, accessToken: String): T = withContext(Dispatchers.IO) {
-    request {
-        url(url)
-        method = HttpMethod.Get
-        header(HttpHeaders.Authorization, "Bearer $accessToken")
-    }.body()
-}
+val PipelineContext<Unit, ApplicationCall>.accessToken: String
+    get() = IdportenUserFactory.createIdportenUser(call).tokenString
+
+val PipelineContext<Unit, ApplicationCall>.loginLevel
+    get() = IdportenUserFactory.createIdportenUser(call).loginLevel

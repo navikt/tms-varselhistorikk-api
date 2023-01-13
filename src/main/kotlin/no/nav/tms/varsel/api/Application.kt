@@ -1,27 +1,17 @@
 package no.nav.tms.varsel.api
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.engine.applicationEngineEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.varsel.api.config.Environment
-import no.nav.tms.varsel.api.config.jsonConfig
+import no.nav.tms.varsel.api.config.HttpClientBuilder
 
 fun main() {
     val environment = Environment()
 
-    val httpClient = HttpClient(Apache.create()) {
-        install(ContentNegotiation) {
-            json(jsonConfig())
-        }
-        install(HttpTimeout)
-    }
+    val httpClient = HttpClientBuilder.build()
 
     embeddedServer(
         factory = Netty,

@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.config.ZonedDateTimeSerializer
+import no.nav.tms.varsel.api.config.get
 import java.time.ZonedDateTime
 
 class VarselConsumer(
@@ -15,7 +16,6 @@ class VarselConsumer(
     private val eventhandlerClientId: String,
     private val tokendingsService: TokendingsService,
 ) {
-
     suspend fun getInaktiveVarsler(accessToken: String, loginLevel: Int): List<InaktivtVarsel> {
         val eventhandlerToken = tokendingsService.exchangeToken(accessToken, targetApp = eventhandlerClientId)
 
@@ -77,5 +77,3 @@ data class Innboks(
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
 )
-
-
