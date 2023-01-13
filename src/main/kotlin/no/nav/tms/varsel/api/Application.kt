@@ -31,7 +31,6 @@ fun main() {
                 varselApi(
                     corsAllowedOrigins = environment.corsAllowedOrigins,
                     corsAllowedSchemes = environment.corsAllowedSchemes,
-                    corsAllowedHeaders = environment.corsAllowedHeaders,
                     httpClient = httpClient,
                     varselConsumer = VarselConsumer(
                         client = httpClient,

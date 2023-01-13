@@ -184,7 +184,6 @@ fun TestApplicationBuilder.mockVarselbjelleApi(
     httpClient: HttpClient = HttpClientBuilder.build(),
     corsAllowedOrigins: String = "*.nav.no",
     corsAllowedSchemes: String = "https",
-    corsAllowedHeaders: List<String> = listOf(""),
     varselConsumer: VarselConsumer = mockk(relaxed = true),
     authMockInstaller: Application.() -> Unit
 ) {
@@ -192,7 +191,6 @@ fun TestApplicationBuilder.mockVarselbjelleApi(
         varselApi(
             corsAllowedOrigins = corsAllowedOrigins,
             corsAllowedSchemes = corsAllowedSchemes,
-            corsAllowedHeaders = corsAllowedHeaders,
             httpClient = httpClient,
             varselConsumer = varselConsumer,
             authInstaller = authMockInstaller

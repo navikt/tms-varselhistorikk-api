@@ -30,7 +30,6 @@ import no.nav.tms.varsel.api.config.jsonConfig
 fun Application.varselApi(
     corsAllowedOrigins: String,
     corsAllowedSchemes: String,
-    corsAllowedHeaders: List<String>,
     httpClient: HttpClient,
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
@@ -54,9 +53,6 @@ fun Application.varselApi(
         allowCredentials = true
         allowHost(corsAllowedOrigins, schemes = listOf(corsAllowedSchemes))
         allowHeader(HttpHeaders.ContentType)
-        corsAllowedHeaders.forEach { approvedHeader ->
-            allowHeader(approvedHeader)
-        }
     }
 
     install(ContentNegotiation) {

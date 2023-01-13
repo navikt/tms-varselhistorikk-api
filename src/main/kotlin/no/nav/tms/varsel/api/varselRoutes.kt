@@ -7,14 +7,11 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.util.pipeline.PipelineContext
-import mu.KotlinLogging
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 
 fun Route.varsel(
     varselConsumer: VarselConsumer
 ) {
-    val log = KotlinLogging.logger {}
-
     get("inaktive") {
         val inaktiveVarsler = varselConsumer.getInaktiveVarsler(accessToken, loginLevel)
 
