@@ -1,0 +1,50 @@
+name: Deploy og bygg docker-image
+
+on:
+  repository_dispatch:
+    types: deploy-new-image
+
+env:
+  GIT_REF: ${{ github.event.client_payload.branch }}
+  CLUSTER: ${{ github.event.client_payload.cluster }}
+  NAMESPACE: ${{ github.event.client_payload.namespace }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ env.IMAGE }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          FETCH-DEPTH: '0'
+
+      - name: Sjekker ut branchen det ønskes å lages et docker-image for
+        run: |
+          git fetch --prune origin +refs/heads/*:refs/remotes/origin/*
+          git checkout $GIT_REF
+          echo "CURRENT_REF=$(git log -1 --pretty='%H')" >> $GITHUB_ENV
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: --configuration-cache build installDist
+
+      - name: Bygg, tag og push Docker image
+        uses: navikt/pb-common-gh-actions/docker-publish@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Deploy-er til ${{ env.NAMESPACE }} i ${{ env.CLUSTER }}'
+        uses: 'nais/deploy/actions/deploy@v1'
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ env.CLUSTER }}
+          RESOURCE: ./nais/${{ env.CLUSTER }}/nais.yaml
+          VAR: version=${{ env.IMAGE }}
+          PRINT_PAYLOAD: true
+          REF: ${{ env.CURRENT_REF }}

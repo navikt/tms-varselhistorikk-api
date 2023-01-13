@@ -1,0 +1,50 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: tms-varsel-api
+  namespace: min-side
+  labels:
+    team: min-side
+spec:
+  envFrom:
+    - secret: tms-varsel-api-secrets
+    - configmap: loginservice-idporten
+  image: {{version}}
+  port: 8080
+  liveness:
+    path: /tms-varsel-api/internal/isAlive
+    initialDelay: 10
+  readiness:
+    path: /tms-varsel-api/internal/isReady
+    initialDelay: 10
+  prometheus:
+    enabled: true
+    path: /tms-varsel-api/metrics
+  replicas:
+    min: 2
+    max: 4
+  tokenx:
+    enabled: true
+  azure:
+    application:
+      enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: dittnav-event-handler
+        - application: dittnav-event-aggregator
+    inbound:
+      rules:
+        - namespace: personbruker
+          application: innloggingsstatus
+        - namespace: personbruker
+          application: nav-dekoratoren-api
+  ingresses:
+    - "https://www.dev.nav.no/tms-varsel-api"
+  resources:
+    limits:
+      cpu: "1"
+      memory: 768Mi
+    requests:
+      cpu: "50m"
+      memory: 64Mi
