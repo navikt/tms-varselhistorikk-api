@@ -8,7 +8,14 @@ metadata:
 spec:
   envFrom:
     - secret: tms-varsel-api-secrets
-    - configmap: loginservice-idporten
+  idporten:
+    enabled: true
+    postLogoutRedirectURIs:
+      - "https://www.dev.nav.no"
+    sidecar:
+      enabled: true
+  tokenx:
+    enabled: true
   image: {{version}}
   port: 8080
   liveness:
@@ -23,11 +30,6 @@ spec:
   replicas:
     min: 2
     max: 4
-  tokenx:
-    enabled: true
-  azure:
-    application:
-      enabled: true
   accessPolicy:
     outbound:
       rules:
