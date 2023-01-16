@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    implementation(DittNAV.Common.utils)
+    implementation(DittNAVCommonLib.utils)
     implementation(Ktor2.Client.core)
     implementation(Ktor2.Client.apache)
     implementation(Ktor2.Client.contentNegotiation)
@@ -31,12 +31,12 @@ dependencies {
     implementation(Ktor2.Server.metricsMicrometer)
     implementation(Ktor2.Server.defaultHeaders)
     implementation(Ktor2.Server.cors)
-    implementation(Ktor2.TmsTokenSupport.tokendingsExchange)
-    implementation(Ktor2.TmsTokenSupport.idportenSidecar)
+    implementation(TmsKtorTokenSupport.tokendingsExchange)
+    implementation(TmsKtorTokenSupport.idportenSidecar)
     implementation(KotlinLogging.logging)
     implementation(Logstash.logbackEncoder)
     implementation("io.ktor:ktor-server-call-logging:2.1.1")
-    implementation(Ktor2.kotlinX)
+    implementation(Ktor2.Serialization.kotlinX)
     implementation(Micrometer.registryPrometheus)
 
     testImplementation(kotlin("test"))
@@ -44,7 +44,7 @@ dependencies {
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Ktor2.Test.serverTestHost)
     testImplementation(Ktor2.Test.clientMock)
-    implementation(Ktor2.TmsTokenSupport.idportenSidecarMock)
+    implementation(TmsKtorTokenSupport.idportenSidecarMock)
     testImplementation(Mockk.mockk)
 }
 
