@@ -14,6 +14,8 @@ data class InaktivtVarsel(
     val type: VarselType,
     val isMasked: Boolean,
     val tekst: String?,
+    val eksternVarslingSendt: Boolean,
+    val eksternVarslingKanaler: List<String>
 ) {
     companion object {
         fun fromBeskjed(beskjed: Beskjed, loginLevel: Int) = inaktivtVarsel(
@@ -22,6 +24,8 @@ data class InaktivtVarsel(
             type = VarselType.BESKJED,
             sikkerhetsnivaa = beskjed.sikkerhetsnivaa,
             tekst = beskjed.tekst,
+            eksternVarslingSendt = beskjed.eksternVarslingSendt,
+            eksternVarslingKanaler = beskjed.eksternVarslingKanaler,
             loginLevel
         )
 
@@ -31,6 +35,8 @@ data class InaktivtVarsel(
             type = VarselType.OPPGAVE,
             sikkerhetsnivaa = oppgave.sikkerhetsnivaa,
             tekst = oppgave.tekst,
+            eksternVarslingSendt = oppgave.eksternVarslingSendt,
+            eksternVarslingKanaler = oppgave.eksternVarslingKanaler,
             loginLevel
         )
 
@@ -40,6 +46,8 @@ data class InaktivtVarsel(
             type = VarselType.INNBOKS,
             sikkerhetsnivaa = innboks.sikkerhetsnivaa,
             tekst = innboks.tekst,
+            eksternVarslingSendt = innboks.eksternVarslingSendt,
+            eksternVarslingKanaler = innboks.eksternVarslingKanaler,
             loginLevel
         )
 
@@ -49,6 +57,8 @@ data class InaktivtVarsel(
             type: VarselType,
             sikkerhetsnivaa: Int,
             tekst: String,
+            eksternVarslingSendt: Boolean,
+            eksternVarslingKanaler: List<String>,
             authLevel: Int
         ): InaktivtVarsel {
             if (sikkerhetsnivaa > authLevel) {
@@ -57,7 +67,9 @@ data class InaktivtVarsel(
                     forstBehandlet = forstBehandlet,
                     type = type,
                     isMasked = true,
-                    tekst = null
+                    tekst = null,
+                    eksternVarslingSendt = eksternVarslingSendt,
+                    eksternVarslingKanaler = eksternVarslingKanaler
                 )
             } else {
                 return InaktivtVarsel(
@@ -65,7 +77,9 @@ data class InaktivtVarsel(
                     forstBehandlet = forstBehandlet,
                     type = type,
                     isMasked = false,
-                    tekst = tekst
+                    tekst = tekst,
+                    eksternVarslingSendt = eksternVarslingSendt,
+                    eksternVarslingKanaler = eksternVarslingKanaler
                 )
             }
         }

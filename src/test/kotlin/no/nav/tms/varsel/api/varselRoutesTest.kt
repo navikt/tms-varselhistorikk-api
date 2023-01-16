@@ -117,6 +117,8 @@ class varselRoutesTest {
                 type shouldBe VarselType.BESKJED
                 isMasked shouldBe true
                 tekst shouldBe null
+                eksternVarslingSendt shouldBe beskjedResponse.eksternVarslingSendt
+                eksternVarslingKanaler shouldBe beskjedResponse.eksternVarslingKanaler
             }
 
             oppgaveResponse.apply {
