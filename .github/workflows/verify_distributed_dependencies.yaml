@@ -20,6 +20,29 @@ jobs:
         run: |
           ./gradlew clean build
 
+      - name: 'Sjekk om deploy til dev-gcp er mulig'
+        run: echo "DEPLOY_CONFIG_DEFINED=$([[ -f ./nais/dev-gcp/nais.yaml ]] && echo 'true' || echo 'false')" >> $GITHUB_ENV
+
+      - name: 'Bygg, tag og push Docker image'
+        run: |
+          APP_NAME=$(echo $GITHUB_REPOSITORY | rev | cut -f1 -d"/" | rev )
+          TAG_NAME="$(git log -1 --pretty='%ad' --date=format:'%Y%m%d%H%M%S')-$(git log -1 --pretty='%h')"
+          IMAGE_NAME="ghcr.io/$GITHUB_REPOSITORY/$APP_NAME:$TAG_NAME"
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u $GITHUB_REPOSITORY --password-stdin
+          docker build --tag $IMAGE_NAME .
+          docker push $IMAGE_NAME
+
+      - name: 'Deploy-er til dev-gcp for å sjekke viability'
+        if: env.DEPLOY_CONFIG_DEFINED == 'true'
+        uses: 'nais/deploy/actions/deploy@v1'
+        env:
+          REF: ${{ github.sha }}
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: ./nais/dev-gcp/nais.yaml
+          VAR: version=${{ needs.build.outputs.image }}
+          PRINT_PAYLOAD: true
+
       - name: 'Merge kode fra branch og push til main'
         run: |
           git fetch
