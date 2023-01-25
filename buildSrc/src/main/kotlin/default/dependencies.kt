@@ -85,7 +85,7 @@ interface GraphQLDefaults: DependencyGroup {
 
 interface H2DatabaseDefaults: DependencyGroup {
     override val groupId get() = "com.h2database"
-    override val version get() = "1.4.200"
+    override val version get() = "2.0.206"
 
     val h2 get() = dependency("h2")
 }
