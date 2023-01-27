@@ -34,6 +34,7 @@ import no.nav.tms.varsel.api.varsel.Beskjed
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.Innboks
 import no.nav.tms.varsel.api.varsel.Oppgave
+import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
@@ -96,7 +97,6 @@ class varselRoutesTest {
         val response = testApi(
             beskjederFromEventHandler = listOf(beskjed),
             oppgaverFromEventHandler = listOf(oppgave),
-            innbokserFromEventHandler = emptyList(),
             securityLevel = SecurityLevel.LEVEL_3
         ) {
             url("inaktive")
@@ -129,9 +129,10 @@ class varselRoutesTest {
     }
 
     private fun testApi(
-        beskjederFromEventHandler: List<Beskjed>,
-        oppgaverFromEventHandler: List<Oppgave>,
-        innbokserFromEventHandler: List<Innboks>,
+        beskjederFromEventHandler: List<Beskjed> = emptyList(),
+        oppgaverFromEventHandler: List<Oppgave> = emptyList(),
+        innbokserFromEventHandler: List<Innboks> = emptyList(),
+        aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
         securityLevel: SecurityLevel,
         clientBuilder: HttpRequestBuilder.() -> Unit
     ): HttpResponse {
@@ -152,6 +153,10 @@ class varselRoutesTest {
 
                         get("/fetch/innboks/inaktive") {
                             call.respond(HttpStatusCode.OK, innbokserFromEventHandler)
+                        }
+
+                        get("/fetch/varsel/aktive") {
+                            call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
                         }
                     }
                 }

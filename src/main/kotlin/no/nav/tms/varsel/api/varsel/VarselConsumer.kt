@@ -77,3 +77,18 @@ data class Innboks(
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
 )
+
+@Serializable
+data class Varsel(
+    val eventId: String,
+    val sikkerhetsnivaa: Int,
+    val sistOppdatert: ZonedDateTime,
+    val tekst: String?,
+    val link: String?,
+    val aktiv: Boolean,
+    val type: VarselType,
+    val forstBehandlet: ZonedDateTime,
+    val fristUtløpt: Boolean?,
+    val eksternVarslingSendt: Boolean,
+    val eksternVarslingKanaler: List<String>
+)
