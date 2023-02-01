@@ -44,5 +44,3 @@ object SulkyUlid: SulkyUlidDefaults
 object TestContainers: TestContainersDefaults
 object TmsKtorTokenSupport: TmsKtorTokenSupportDefaults
 object Unleash: UnleashDefaults
-
-object DummyGroup
