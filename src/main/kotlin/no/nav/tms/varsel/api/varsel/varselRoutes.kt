@@ -16,4 +16,10 @@ fun Route.varsel(
 
         call.respond(HttpStatusCode.OK, inaktiveVarsler)
     }
+
+    get("aktive") {
+        val aktiveVarsler = varselConsumer.getAktiveVarsler(accessToken)
+
+        call.respond(HttpStatusCode.OK, aktiveVarsler)
+    }
 }

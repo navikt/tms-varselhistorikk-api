@@ -30,6 +30,7 @@ import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
 import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.Beskjed
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.Innboks
@@ -39,7 +40,7 @@ import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 
-class varselRoutesTest {
+class VarselRoutesTest {
 
     @Test
     fun `Henter alle inaktiverte varsler`() {
@@ -90,7 +91,48 @@ class varselRoutesTest {
     }
 
     @Test
-    fun `Maskerer felter hvis loginLevel er mindre enn sikkerhetsnivaa`() {
+    fun `Henter alle aktive varsler`() {
+        val varsler = listOf(
+            VarselTestData.varsel(type = VarselType.BESKJED),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+        )
+
+        val response = testApi(
+            aktiveVarslerFromEventHandler = varsler,
+            securityLevel = SecurityLevel.LEVEL_4
+        ) {
+            url("aktive")
+            method = HttpMethod.Get
+            header("fodselsnummer", "12345678912")
+        }
+
+        runBlocking {
+            response.status shouldBe HttpStatusCode.OK
+
+            val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
+            aktiveVarsler.beskjeder.size shouldBe 1
+            aktiveVarsler.oppgaver.size shouldBe 2
+            aktiveVarsler.innbokser.size shouldBe 3
+
+            val beskjed = varsler.first { it.type == VarselType.BESKJED }
+            aktiveVarsler.beskjeder.first().apply {
+                eventId shouldBe beskjed.eventId
+                forstBehandlet shouldBe beskjed.forstBehandlet
+                isMasked shouldBe beskjed.isMasked
+                tekst shouldBe beskjed.tekst
+                link shouldBe beskjed.link
+                eksternVarslingSendt shouldBe beskjed.eksternVarslingSendt
+                eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
+            }
+        }
+    }
+
+    @Test
+    fun `Maskerer felter hvis loginLevel er mindre enn sikkerhetsnivaa for inaktive`() {
         val beskjed = VarselTestData.beskjed(sikkerhetsnivaa = 4)
         val oppgave = VarselTestData.oppgave(sikkerhetsnivaa = 3)
 

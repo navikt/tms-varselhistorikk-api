@@ -24,6 +24,13 @@ class VarselConsumer(
                 getInaktiveInnbokser(eventhandlerToken).map { InaktivtVarsel.fromInnboks(it, loginLevel) }
     }
 
+    suspend fun getAktiveVarsler(accessToken: String): AktiveVarsler {
+        val eventhandlerToken = tokendingsService.exchangeToken(accessToken, targetApp = eventhandlerClientId)
+        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
+
+        return AktiveVarsler.fromVarsler(varsler)
+    }
+
     private suspend fun getInaktiveBeskjeder(eventhandlerToken: String): List<Beskjed> =
         client.get("$eventHandlerBaseURL/fetch/beskjed/inaktive", eventhandlerToken)
 
@@ -85,6 +92,7 @@ data class Varsel(
     val sistOppdatert: ZonedDateTime,
     val tekst: String?,
     val link: String?,
+    val isMasked: Boolean,
     val aktiv: Boolean,
     val type: VarselType,
     val forstBehandlet: ZonedDateTime,
