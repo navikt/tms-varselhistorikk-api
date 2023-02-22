@@ -32,6 +32,9 @@ spec:
     min: 2
     max: 4
   accessPolicy:
+    inbound:
+      rules:
+        - application: tms-min-side-proxy
     outbound:
       rules:
         - application: dittnav-event-handler
