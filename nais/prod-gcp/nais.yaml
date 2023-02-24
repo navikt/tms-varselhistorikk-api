@@ -8,13 +8,6 @@ metadata:
 spec:
   envFrom:
     - secret: tms-varsel-api-secrets
-  idporten:
-    enabled: true
-    postLogoutRedirectURIs:
-      - "https://www.nav.no"
-    sidecar:
-      enabled: true
-      level: Level3
   tokenx:
     enabled: true
   image: {{version}}

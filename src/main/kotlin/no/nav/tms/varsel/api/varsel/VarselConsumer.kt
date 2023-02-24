@@ -16,16 +16,16 @@ class VarselConsumer(
     private val eventhandlerClientId: String,
     private val tokendingsService: TokendingsService,
 ) {
-    suspend fun getInaktiveVarsler(accessToken: String, loginLevel: Int): List<InaktivtVarsel> {
-        val eventhandlerToken = tokendingsService.exchangeToken(accessToken, targetApp = eventhandlerClientId)
+    suspend fun getInaktiveVarsler(userToken: String, loginLevel: Int): List<InaktivtVarsel> {
+        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
 
         return getInaktiveBeskjeder(eventhandlerToken).map { InaktivtVarsel.fromBeskjed(it, loginLevel) } +
                 getInaktiveOppgaver(eventhandlerToken).map { InaktivtVarsel.fromOppgave(it, loginLevel) } +
                 getInaktiveInnbokser(eventhandlerToken).map { InaktivtVarsel.fromInnboks(it, loginLevel) }
     }
 
-    suspend fun getAktiveVarsler(accessToken: String): AktiveVarsler {
-        val eventhandlerToken = tokendingsService.exchangeToken(accessToken, targetApp = eventhandlerClientId)
+    suspend fun getAktiveVarsler(userToken: String): AktiveVarsler {
+        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
         val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
 
         return AktiveVarsler.fromVarsler(varsler)
