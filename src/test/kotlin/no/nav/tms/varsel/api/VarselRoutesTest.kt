@@ -31,10 +31,7 @@ import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
 import no.nav.tms.token.support.tokenx.validation.mock.installTokenXAuthMock
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
-import no.nav.tms.varsel.api.varsel.Beskjed
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
-import no.nav.tms.varsel.api.varsel.Innboks
-import no.nav.tms.varsel.api.varsel.Oppgave
 import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.VarselType
@@ -44,22 +41,18 @@ class VarselRoutesTest {
 
     @Test
     fun `Henter alle inaktiverte varsler`() {
-        val beskjed = VarselTestData.beskjed()
-        val oppgaver = listOf(
-            VarselTestData.oppgave(),
-            VarselTestData.oppgave()
-        )
-        val innbokser = listOf(
-            VarselTestData.innboks(),
-            VarselTestData.innboks(),
-            VarselTestData.innboks()
+        val varsler = listOf(
+            VarselTestData.varsel(type = VarselType.BESKJED),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
         )
 
+
         val response = testApi(
-            beskjederFromEventHandler = listOf(beskjed),
-            oppgaverFromEventHandler = oppgaver,
-            innbokserFromEventHandler = innbokser,
-            securityLevel = SecurityLevel.LEVEL_4
+            inaktiveVarslerFromEventHandler = varsler
         ) {
             url("inaktive")
             method = HttpMethod.Get
@@ -80,7 +73,8 @@ class VarselRoutesTest {
                 VarselType.INNBOKS
             )
 
-            inaktiveVarsler.first().apply {
+            val beskjed = varsler.first { it.type == VarselType.BESKJED }
+            inaktiveVarsler.first { it.type == VarselType.BESKJED }.apply {
                 eventId shouldBe beskjed.eventId
                 forstBehandlet shouldBe beskjed.forstBehandlet
                 type shouldBe VarselType.BESKJED
@@ -102,8 +96,7 @@ class VarselRoutesTest {
         )
 
         val response = testApi(
-            aktiveVarslerFromEventHandler = varsler,
-            securityLevel = SecurityLevel.LEVEL_4
+            aktiveVarslerFromEventHandler = varsler
         ) {
             url("aktive")
             method = HttpMethod.Get
@@ -131,51 +124,10 @@ class VarselRoutesTest {
         }
     }
 
-    @Test
-    fun `Maskerer felter hvis loginLevel er mindre enn sikkerhetsnivaa for inaktive`() {
-        val beskjed = VarselTestData.beskjed(sikkerhetsnivaa = 4)
-        val oppgave = VarselTestData.oppgave(sikkerhetsnivaa = 3)
-
-        val response = testApi(
-            beskjederFromEventHandler = listOf(beskjed),
-            oppgaverFromEventHandler = listOf(oppgave),
-            securityLevel = SecurityLevel.LEVEL_3
-        ) {
-            url("inaktive")
-            method = HttpMethod.Get
-            header("fodselsnummer", "12345678912")
-        }
-
-        runBlocking {
-            response.status shouldBe HttpStatusCode.OK
-
-            val inaktiveVarsler = Json.decodeFromString<List<InaktivtVarsel>>(response.bodyAsText())
-            val beskjedResponse = inaktiveVarsler.first { it.type == VarselType.BESKJED }
-            val oppgaveResponse = inaktiveVarsler.first { it.type == VarselType.OPPGAVE }
-
-            beskjedResponse.apply {
-                eventId shouldBe beskjedResponse.eventId
-                forstBehandlet shouldBe beskjedResponse.forstBehandlet
-                type shouldBe VarselType.BESKJED
-                isMasked shouldBe true
-                tekst shouldBe null
-                eksternVarslingSendt shouldBe beskjedResponse.eksternVarslingSendt
-                eksternVarslingKanaler shouldBe beskjedResponse.eksternVarslingKanaler
-            }
-
-            oppgaveResponse.apply {
-                isMasked shouldBe false
-                tekst shouldBe oppgaveResponse.tekst
-            }
-        }
-    }
-
     private fun testApi(
-        beskjederFromEventHandler: List<Beskjed> = emptyList(),
-        oppgaverFromEventHandler: List<Oppgave> = emptyList(),
-        innbokserFromEventHandler: List<Innboks> = emptyList(),
         aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-        securityLevel: SecurityLevel,
+        inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
+        securityLevel: SecurityLevel = SecurityLevel.LEVEL_4,
         clientBuilder: HttpRequestBuilder.() -> Unit
     ): HttpResponse {
         val eventhandlerTestUrl = "https://test.eventhandler.no"
@@ -185,20 +137,12 @@ class VarselRoutesTest {
                 hosts(eventhandlerTestUrl) {
                     install(ContentNegotiation) { json() }
                     routing {
-                        get("/fetch/beskjed/inaktive") {
-                            call.respond(HttpStatusCode.OK, beskjederFromEventHandler)
-                        }
-
-                        get("/fetch/oppgave/inaktive") {
-                            call.respond(HttpStatusCode.OK, oppgaverFromEventHandler)
-                        }
-
-                        get("/fetch/innboks/inaktive") {
-                            call.respond(HttpStatusCode.OK, innbokserFromEventHandler)
-                        }
-
                         get("/fetch/varsel/aktive") {
                             call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
+                        }
+
+                        get("/fetch/varsel/inaktive") {
+                            call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
                         }
                     }
                 }

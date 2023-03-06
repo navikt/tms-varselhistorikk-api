@@ -80,9 +80,6 @@ private fun Application.configureShutdownHook(httpClient: HttpClient) {
 val PipelineContext<Unit, ApplicationCall>.userToken: String
     get() = TokenXUserFactory.createTokenXUser(call).tokenString
 
-val PipelineContext<Unit, ApplicationCall>.loginLevel
-    get() = TokenXUserFactory.createTokenXUser(call).loginLevel
-
 fun jsonConfig(): Json {
     return Json {
         this.ignoreUnknownKeys = true
