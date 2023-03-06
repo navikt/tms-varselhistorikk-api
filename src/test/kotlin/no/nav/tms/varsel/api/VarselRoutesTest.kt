@@ -31,6 +31,7 @@ import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
 import no.nav.tms.token.support.tokenx.validation.mock.installTokenXAuthMock
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
+import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
@@ -121,6 +122,35 @@ class VarselRoutesTest {
                 eksternVarslingSendt shouldBe beskjed.eksternVarslingSendt
                 eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
             }
+        }
+    }
+
+    @Test
+    fun `Henter antall aktive varsler`() {
+        val varsler = listOf(
+            VarselTestData.varsel(type = VarselType.BESKJED),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.INNBOKS),
+        )
+
+        val response = testApi(
+            aktiveVarslerFromEventHandler = varsler
+        ) {
+            url("antall/aktive")
+            method = HttpMethod.Get
+            header("fodselsnummer", "12345678912")
+        }
+
+        runBlocking {
+            response.status shouldBe HttpStatusCode.OK
+
+            val antallVarsler = Json.decodeFromString<AntallVarsler>(response.bodyAsText())
+            antallVarsler.beskjeder shouldBe 1
+            antallVarsler.oppgaver shouldBe 2
+            antallVarsler.innbokser shouldBe 3
         }
     }
 
