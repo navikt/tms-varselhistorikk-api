@@ -16,14 +16,6 @@ class VarselConsumer(
     private val eventhandlerClientId: String,
     private val tokendingsService: TokendingsService,
 ) {
-    suspend fun getInaktiveVarsler(userToken: String, loginLevel: Int): List<InaktivtVarsel> {
-        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
-
-        return getInaktiveBeskjeder(eventhandlerToken).map { InaktivtVarsel.fromBeskjed(it, loginLevel) } +
-                getInaktiveOppgaver(eventhandlerToken).map { InaktivtVarsel.fromOppgave(it, loginLevel) } +
-                getInaktiveInnbokser(eventhandlerToken).map { InaktivtVarsel.fromInnboks(it, loginLevel) }
-    }
-
     suspend fun getAktiveVarsler(userToken: String): AktiveVarsler {
         val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
         val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
@@ -31,59 +23,13 @@ class VarselConsumer(
         return AktiveVarsler.fromVarsler(varsler)
     }
 
-    private suspend fun getInaktiveBeskjeder(eventhandlerToken: String): List<Beskjed> =
-        client.get("$eventHandlerBaseURL/fetch/beskjed/inaktive", eventhandlerToken)
+    suspend fun getInaktiveVarsler(userToken: String): List<InaktivtVarsel> {
+        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
+        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/inaktive", eventhandlerToken)
 
-    private suspend fun getInaktiveOppgaver(eventhandlerToken: String): List<Oppgave> =
-        client.get("$eventHandlerBaseURL/fetch/oppgave/inaktive", eventhandlerToken)
-
-    private suspend fun getInaktiveInnbokser(eventhandlerToken: String): List<Innboks> =
-        client.get("$eventHandlerBaseURL/fetch/innboks/inaktive", eventhandlerToken)
+        return varsler.map { InaktivtVarsel.fromVarsel(it) }
+    }
 }
-
-@Serializable
-data class Beskjed(
-    val fodselsnummer: String,
-    val eventId: String,
-    val eventTidspunkt: ZonedDateTime,
-    val forstBehandlet: ZonedDateTime,
-    val sikkerhetsnivaa: Int,
-    val sistOppdatert: ZonedDateTime,
-    val synligFremTil: ZonedDateTime?,
-    val tekst: String,
-    val link: String,
-    val aktiv: Boolean,
-    val eksternVarslingSendt: Boolean,
-    val eksternVarslingKanaler: List<String>
-)
-
-@Serializable
-data class Oppgave(
-    val fodselsnummer: String,
-    val eventId: String,
-    val forstBehandlet: ZonedDateTime,
-    val sikkerhetsnivaa: Int,
-    val sistOppdatert: ZonedDateTime,
-    val tekst: String,
-    val link: String,
-    val aktiv: Boolean,
-    val eksternVarslingSendt: Boolean,
-    val eksternVarslingKanaler: List<String>
-)
-
-@Serializable
-data class Innboks(
-    val forstBehandlet: ZonedDateTime,
-    val fodselsnummer: String,
-    val eventId: String,
-    val tekst: String,
-    val link: String,
-    val sikkerhetsnivaa: Int,
-    val sistOppdatert: ZonedDateTime,
-    val aktiv: Boolean,
-    val eksternVarslingSendt: Boolean,
-    val eksternVarslingKanaler: List<String>
-)
 
 @Serializable
 data class Varsel(
@@ -100,3 +46,9 @@ data class Varsel(
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
 )
+
+enum class VarselType {
+    OPPGAVE,
+    BESKJED,
+    INNBOKS,
+}
