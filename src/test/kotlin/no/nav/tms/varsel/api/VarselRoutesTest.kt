@@ -27,9 +27,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
-import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
+import no.nav.tms.token.support.tokenx.validation.mock.installTokenXAuthMock
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.Beskjed
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
@@ -252,7 +252,7 @@ fun TestApplicationBuilder.mockVarselbjelleApi(
 }
 
 private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
-    installIdPortenAuthMock {
+    installTokenXAuthMock {
         alwaysAuthenticated = true
         setAsDefault = true
         staticSecurityLevel = securityLevel
