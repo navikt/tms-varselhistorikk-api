@@ -37,6 +37,7 @@ dependencies {
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(KotlinLogging.logging)
     implementation(Logstash.logbackEncoder)
+    implementation(Logback.classic)
     implementation("io.ktor:ktor-server-call-logging:2.1.1")
     implementation(Ktor2.Serialization.kotlinX)
     implementation(Micrometer.registryPrometheus)
