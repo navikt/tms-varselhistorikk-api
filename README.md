@@ -4,7 +4,7 @@ Henter varsler fra eventhandler\
 BFF for
 * [tms-mikrofrontend-oversikt](https://github.com/navikt/tms-mikrofrontend-oversikt)
 * [tms-min-side-varslinger](https://github.com/navikt/tms-min-side-varslinger)
-* Aktive varsel underside
+* [tms-varsel](https://github.com/navikt/tms-varsel)
 # Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på github.
