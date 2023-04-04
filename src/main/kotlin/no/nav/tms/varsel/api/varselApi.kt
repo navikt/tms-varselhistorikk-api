@@ -1,7 +1,7 @@
 package no.nav.tms.varsel.api
 
 import io.ktor.client.HttpClient
-import io.ktor.http.HttpHeaders
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
@@ -14,11 +14,14 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.routing
 import io.ktor.util.pipeline.PipelineContext
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
 import no.nav.tms.token.support.tokenx.validation.installTokenXAuth
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
@@ -37,13 +40,18 @@ fun Application.varselApi(
     }
 ) {
     val collectorRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val securelog = KotlinLogging.logger("secureLog")
 
     install(DefaultHeaders)
 
     authInstaller()
 
     install(StatusPages) {
-
+        exception<Throwable> { call, cause ->
+            securelog.warn { "Kall til ${call.request.uri} feilet: ${cause.message}" }
+            securelog.warn { cause.stackTrace }
+            call.respond(HttpStatusCode.InternalServerError)
+        }
     }
 
     install(CORS) {

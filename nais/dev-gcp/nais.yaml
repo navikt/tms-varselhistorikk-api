@@ -31,8 +31,6 @@ spec:
     outbound:
       rules:
         - application: dittnav-event-handler
-  ingresses:
-    - "https://www.dev.nav.no/tms-varsel-api"
   resources:
     limits:
       cpu: "1"
