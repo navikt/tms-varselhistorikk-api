@@ -58,6 +58,7 @@ class VarselRoutesTest {
             url("inaktive")
             method = HttpMethod.Get
             header("fodselsnummer", "12345678912")
+            header(SIDECAR_WORKAROUND_HEADER,"Bearer gajhhgfjagsfjahgfjasfgh")
         }
 
         runBlocking {
@@ -227,7 +228,7 @@ fun TestApplicationBuilder.mockVarselbjelleApi(
 
 private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
     installTokenXAuthMock {
-        alwaysAuthenticated = true
+        alwaysAuthenticated = false
         setAsDefault = true
         staticSecurityLevel = securityLevel
         staticUserPid = "12345"
