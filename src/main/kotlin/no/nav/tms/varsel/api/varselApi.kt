@@ -25,7 +25,7 @@ import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 
-const val SIDECAR_WORKAROUND_HEADER = "PROXY_TOKEN"
+const val SIDECAR_WORKAROUND_HEADER = "token-x-authorization"
 
 
 fun Application.varselApi(
@@ -43,7 +43,7 @@ fun Application.varselApi(
     val securelog = KotlinLogging.logger("secureLog")
 
     install(DefaultHeaders)
-    install(RouteByAuthenticationMethod)
+    //install(RouteByAuthenticationMethod)
 
     authInstaller()
 
@@ -75,7 +75,7 @@ fun Application.varselApi(
             varsel(varselConsumer)
         }
 
-        route("/tokenx"){
+        route("/tokenx") {
             varsel(varselConsumer)
         }
     }
@@ -101,10 +101,9 @@ fun jsonConfig(): Json {
 
 val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthenticationMethod") {
     on(CallSetup) { call ->
-        if (call.request.headers.contains(SIDECAR_WORKAROUND_HEADER)){
+        if (call.request.headers.contains(SIDECAR_WORKAROUND_HEADER)) {
             val originalUri = call.request.uri
             call.mutableOriginConnectionPoint.uri = "/tokenx/$originalUri"
         }
-        println("Pipeline gogo")
     }
 }

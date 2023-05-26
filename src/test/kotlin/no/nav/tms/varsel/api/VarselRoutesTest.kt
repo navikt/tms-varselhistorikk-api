@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.url
@@ -20,6 +21,7 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
@@ -39,6 +41,7 @@ import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 
 class VarselRoutesTest {
+    private val eventhandlerTestUrl = "https://test.eventhandler.no"
 
     @Test
     fun `Henter alle inaktiverte varsler`() {
@@ -50,18 +53,18 @@ class VarselRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS),
             VarselTestData.varsel(type = VarselType.INNBOKS),
         )
+        testApplication {
+            setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+            )
 
+            val response = client.get("/inaktive") {
+                header("fodselsnummer", "12345678912")
+                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+            }
 
-        val response = testApi(
-            inaktiveVarslerFromEventHandler = varsler
-        ) {
-            url("inaktive")
-            method = HttpMethod.Get
-            header("fodselsnummer", "12345678912")
-            header(SIDECAR_WORKAROUND_HEADER,"Bearer gajhhgfjagsfjahgfjasfgh")
-        }
-
-        runBlocking {
             response.status shouldBe HttpStatusCode.OK
 
             val inaktiveVarsler = Json.decodeFromString<List<InaktivtVarsel>>(response.bodyAsText())
@@ -97,15 +100,19 @@ class VarselRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS),
         )
 
-        val response = testApi(
-            aktiveVarslerFromEventHandler = varsler
-        ) {
-            url("aktive")
-            method = HttpMethod.Get
-            header("fodselsnummer", "12345678912")
-        }
+        testApplication {
+            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+            )
 
-        runBlocking {
+            val response = client.get("/aktive") {
+                header("fodselsnummer", "12345678912")
+                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+            }
+
+
             response.status shouldBe HttpStatusCode.OK
 
             val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
@@ -124,6 +131,7 @@ class VarselRoutesTest {
                 eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
             }
         }
+
     }
 
     @Test
@@ -136,16 +144,18 @@ class VarselRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS),
             VarselTestData.varsel(type = VarselType.INNBOKS),
         )
+        testApplication {
+            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+            )
 
-        val response = testApi(
-            aktiveVarslerFromEventHandler = varsler
-        ) {
-            url("antall/aktive")
-            method = HttpMethod.Get
-            header("fodselsnummer", "12345678912")
-        }
+            val response = client.get("antall/aktive") {
+                header("fodselsnummer", "12345678912")
+                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+            }
 
-        runBlocking {
             response.status shouldBe HttpStatusCode.OK
 
             val antallVarsler = Json.decodeFromString<AntallVarsler>(response.bodyAsText())
@@ -153,7 +163,49 @@ class VarselRoutesTest {
             antallVarsler.oppgaver shouldBe 2
             antallVarsler.innbokser shouldBe 3
         }
+
+
     }
+
+
+    private fun ApplicationTestBuilder.setupExternalServices(
+        aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
+        inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
+    ) {
+        externalServices {
+            hosts(eventhandlerTestUrl) {
+                install(ContentNegotiation) { json() }
+                routing {
+                    get("/fetch/varsel/aktive") {
+                        call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
+                    }
+
+                    get("/fetch/varsel/inaktive") {
+                        call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun ApplicationTestBuilder.setupVarselConsumer(
+        tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
+            coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
+        }
+    ) = VarselConsumer(
+        client = createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                json(jsonConfig())
+            }
+            install(HttpTimeout)
+
+        },
+        eventHandlerBaseURL = eventhandlerTestUrl,
+        eventhandlerClientId = "",
+        tokendingsService = tokendingsService
+
+    )
+
 
     private fun testApi(
         aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
@@ -161,44 +213,12 @@ class VarselRoutesTest {
         securityLevel: SecurityLevel = SecurityLevel.LEVEL_4,
         clientBuilder: HttpRequestBuilder.() -> Unit
     ): HttpResponse {
-        val eventhandlerTestUrl = "https://test.eventhandler.no"
+
         lateinit var response: HttpResponse
         testApplication {
-            externalServices {
-                hosts(eventhandlerTestUrl) {
-                    install(ContentNegotiation) { json() }
-                    routing {
-                        get("/fetch/varsel/aktive") {
-                            call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
-                        }
-
-                        get("/fetch/varsel/inaktive") {
-                            call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
-                        }
-                    }
-                }
-            }
-
-            val httpClient = createClient {
-                install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                    json(jsonConfig())
-                }
-                install(HttpTimeout)
-            }
-
-            val tokendingsMock = mockk<TokendingsService>().apply {
-                coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
-            }
-
-            val varselConsumer = VarselConsumer(
-                client = httpClient,
-                eventHandlerBaseURL = eventhandlerTestUrl,
-                eventhandlerClientId = "",
-                tokendingsService = tokendingsMock,
-            )
-
-            mockVarselbjelleApi(
-                varselConsumer = varselConsumer,
+            setupExternalServices(aktiveVarslerFromEventHandler, inaktiveVarslerFromEventHandler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installAuthMock(securityLevel)
             )
 
@@ -208,7 +228,7 @@ class VarselRoutesTest {
     }
 }
 
-fun TestApplicationBuilder.mockVarselbjelleApi(
+fun TestApplicationBuilder.mockVarselApi(
     httpClient: HttpClient = HttpClientBuilder.build(),
     corsAllowedOrigins: String = "*.nav.no",
     corsAllowedSchemes: String = "https",
@@ -228,7 +248,7 @@ fun TestApplicationBuilder.mockVarselbjelleApi(
 
 private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
     installTokenXAuthMock {
-        alwaysAuthenticated = false
+        alwaysAuthenticated = true
         setAsDefault = true
         staticSecurityLevel = securityLevel
         staticUserPid = "12345"
