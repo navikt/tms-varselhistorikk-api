@@ -21,11 +21,8 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
-import no.nav.tms.token.support.idporten.sidecar.LoginLevel
-import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
-import no.nav.tms.token.support.tokenx.validation.installTokenXAuth
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel

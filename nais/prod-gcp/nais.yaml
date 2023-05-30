@@ -10,6 +10,8 @@ spec:
     - secret: tms-varsel-api-secrets
   tokenx:
     enabled: true
+  idporten:
+    enabled: true
   image: {{version}}
   port: 8080
   liveness:
