@@ -20,7 +20,9 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
+import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.installTokenXAuth
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
@@ -36,11 +38,11 @@ fun Application.varselApi(
     httpClient: HttpClient,
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
-        installTokenXAuth {
-
-        }
-        installIdPortenAuth {
-            setAsDefault = true
+        installAuthenticators {
+            installTokenXAuth()
+            installIdPortenAuth {
+                setAsDefault = true
+            }
         }
     }
 ) {
@@ -78,12 +80,12 @@ fun Application.varselApi(
         meta(collectorRegistry)
         authenticate {
             route("/idporten") {
-                varsel(varselConsumer)
+                varsel(varselConsumer) { IdportenUserFactory.createIdportenUser(call).tokenString }
             }
         }
         authenticate(TokenXAuthenticator.name) {
             route("/tokenx") {
-                varsel(varselConsumer)
+                varsel(varselConsumer) { TokenXUserFactory.createTokenXUser(call).tokenString }
             }
         }
     }
@@ -100,12 +102,6 @@ private fun Application.configureShutdownHook(httpClient: HttpClient) {
 val PipelineContext<Unit, ApplicationCall>.userToken: String
     get() = TokenXUserFactory.createTokenXUser(call).tokenString
 
-fun PipelineContext<Unit, ApplicationCall>.userTokenFromTokenX(): String =
-    TokenXUserFactory.createTokenXUser(call).tokenString
-
-fun PipelineContext<Unit, ApplicationCall>.userTokenFromIdporten(): String =
-    TokenXUserFactory.createTokenXUser(call).tokenString
-
 
 fun jsonConfig(): Json {
     return Json {
@@ -118,9 +114,9 @@ val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthent
     on(CallSetup) { call ->
         val originalUri = call.request.uri
         if (call.request.headers.contains(SIDECAR_WORKAROUND_HEADER)) {
-            call.mutableOriginConnectionPoint.uri = "/tokenx/$originalUri"
+            call.mutableOriginConnectionPoint.uri = "/tokenx$originalUri"
         } else {
-            call.mutableOriginConnectionPoint.uri = "/idporten/$originalUri"
+            call.mutableOriginConnectionPoint.uri = "/idporten$originalUri"
         }
     }
 }

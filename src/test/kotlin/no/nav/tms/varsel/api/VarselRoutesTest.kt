@@ -1,18 +1,12 @@
 package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.ints.exactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.request.request
-import io.ktor.client.request.url
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -26,17 +20,13 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
-import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel.LEVEL_4
-import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
+import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel as IdportenSecurityLevel
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
-import no.nav.tms.token.support.tokenx.validation.mock.installTokenXAuthMock
+import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel as TokenXSecurityLevel
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
@@ -52,7 +42,34 @@ class VarselRoutesTest {
     }
 
     @Test
-    fun `Henter alle inaktiverte varsler`() {
+    fun `Henter alle inaktiverte varsler med tokenX autentisering`() {
+        val varsler = listOf(
+            VarselTestData.varsel(type = VarselType.BESKJED),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.OPPGAVE),
+            VarselTestData.varsel(type = VarselType.INNBOKS)
+        )
+        //tokenx
+        testApplication {
+            setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                authMockInstaller = installTokenXAuthenticatedMock(TokenXSecurityLevel.LEVEL_4)
+            )
+
+            client.get("/inaktive").status shouldBe HttpStatusCode.Unauthorized
+            val response = client.get("/inaktive") {
+                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+            }
+            response.status shouldBe HttpStatusCode.OK
+
+        }
+
+    }
+
+    @Test
+    fun `Henter inaktiverte varsel med idporten autentisering`() {
+
         val varsler = listOf(
             VarselTestData.varsel(type = VarselType.BESKJED),
             VarselTestData.varsel(type = VarselType.OPPGAVE),
@@ -61,18 +78,20 @@ class VarselRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS),
             VarselTestData.varsel(type = VarselType.INNBOKS),
         )
+
         testApplication {
             setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(tokendingsMckk),
-                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            val response = client.get("/inaktive") {
-                header("fodselsnummer", "12345678912")
+            client.get("/inaktive") {
                 header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
-            }
+            }.status shouldBe HttpStatusCode.Unauthorized
 
+            val response = client.get("/inaktive")
+            response.status shouldBe HttpStatusCode.OK
             response.status shouldBe HttpStatusCode.OK
 
             val inaktiveVarsler = Json.decodeFromString<List<InaktivtVarsel>>(response.bodyAsText())
@@ -94,8 +113,8 @@ class VarselRoutesTest {
                 isMasked shouldBe false
                 tekst shouldBe beskjed.tekst
             }
+
         }
-    //    coVerify(exactly = 1) { tokendingsMckk.exchangeToken("tokenxtoken","") }
     }
 
     @Test
@@ -113,15 +132,17 @@ class VarselRoutesTest {
             setupExternalServices(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            val response = client.get("/aktive") {
-                header("fodselsnummer", "12345678912")
-                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
-            }
+            client.get("/aktive") {
+                header(
+                    SIDECAR_WORKAROUND_HEADER,
+                    "tokenxtoken"
+                )
+            }.status shouldBe HttpStatusCode.Unauthorized
 
-
+            val response = client.get("/aktive")
             response.status shouldBe HttpStatusCode.OK
 
             val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
@@ -157,13 +178,10 @@ class VarselRoutesTest {
             setupExternalServices(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            val response = client.get("antall/aktive") {
-                header("fodselsnummer", "12345678912")
-                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
-            }
+            val response = client.get("antall/aktive")
 
             response.status shouldBe HttpStatusCode.OK
 
@@ -171,6 +189,10 @@ class VarselRoutesTest {
             antallVarsler.beskjeder shouldBe 1
             antallVarsler.oppgaver shouldBe 2
             antallVarsler.innbokser shouldBe 3
+        }
+
+        testApplication {
+            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
         }
 
 
@@ -214,27 +236,6 @@ class VarselRoutesTest {
         tokendingsService = tokendingsService
 
     )
-
-
-    private fun testApi(
-        aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-        inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-        securityLevel: SecurityLevel = SecurityLevel.LEVEL_4,
-        clientBuilder: HttpRequestBuilder.() -> Unit
-    ): HttpResponse {
-
-        lateinit var response: HttpResponse
-        testApplication {
-            setupExternalServices(aktiveVarslerFromEventHandler, inaktiveVarslerFromEventHandler)
-            mockVarselApi(
-                varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthMock(securityLevel)
-            )
-
-            response = client.request { clientBuilder() }
-        }
-        return response
-    }
 }
 
 fun TestApplicationBuilder.mockVarselApi(
@@ -255,7 +256,7 @@ fun TestApplicationBuilder.mockVarselApi(
     }
 }
 
-private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
+private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): Application.() -> Unit = {
     installMockedAuthenticators {
         installTokenXAuthMock {
             alwaysAuthenticated = true
@@ -264,9 +265,22 @@ private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Uni
             staticUserPid = "12345"
         }
         installIdPortenAuthMock {
+            alwaysAuthenticated = false
+            setAsDefault = true
+        }
+    }
+}
+
+private fun installIdportenAuthenticatedMock(securityLevel: IdportenSecurityLevel): Application.() -> Unit = {
+    installMockedAuthenticators {
+        installTokenXAuthMock {
+            alwaysAuthenticated = false
+            setAsDefault = false
+        }
+        installIdPortenAuthMock {
             alwaysAuthenticated = true
             setAsDefault = true
-            staticSecurityLevel = LEVEL_4
+            staticSecurityLevel = securityLevel
             staticUserPid = "12345"
         }
     }
