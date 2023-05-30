@@ -33,6 +33,7 @@ dependencies {
     implementation(Ktor2.Server.defaultHeaders)
     implementation(Ktor2.Server.cors)
     implementation(TmsKtorTokenSupport.tokenXValidation)
+    implementation(TmsKtorTokenSupport.idportenSidecar)
     implementation(TmsKtorTokenSupport.authenticationInstaller)
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(KotlinLogging.logging)
@@ -48,6 +49,7 @@ dependencies {
     testImplementation(Ktor2.Test.serverTestHost)
     testImplementation(Ktor2.Test.clientMock)
     implementation(TmsKtorTokenSupport.tokenXValidationMock)
+    implementation(TmsKtorTokenSupport.idportenSidecarMock)
     testImplementation(Mockk.mockk)
 }
 

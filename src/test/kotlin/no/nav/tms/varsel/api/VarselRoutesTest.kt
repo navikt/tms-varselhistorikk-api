@@ -1,6 +1,7 @@
 package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.ints.exactly
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -25,10 +26,13 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel.LEVEL_4
+import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel
 import no.nav.tms.token.support.tokenx.validation.mock.installTokenXAuthMock
@@ -42,6 +46,9 @@ import org.junit.jupiter.api.Test
 
 class VarselRoutesTest {
     private val eventhandlerTestUrl = "https://test.eventhandler.no"
+    private val tokendingsMckk = mockk<TokendingsService>().apply {
+        coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
+    }
 
     @Test
     fun `Henter alle inaktiverte varsler`() {
@@ -56,7 +63,7 @@ class VarselRoutesTest {
         testApplication {
             setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
-                varselConsumer = setupVarselConsumer(),
+                varselConsumer = setupVarselConsumer(tokendingsMckk),
                 authMockInstaller = installAuthMock(SecurityLevel.LEVEL_4)
             )
 
@@ -87,6 +94,7 @@ class VarselRoutesTest {
                 tekst shouldBe beskjed.tekst
             }
         }
+    //    coVerify(exactly = 1) { tokendingsMckk.exchangeToken("tokenxtoken","") }
     }
 
     @Test
@@ -249,8 +257,14 @@ fun TestApplicationBuilder.mockVarselApi(
 private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
     installTokenXAuthMock {
         alwaysAuthenticated = true
-        setAsDefault = true
+        setAsDefault = false
         staticSecurityLevel = securityLevel
+        staticUserPid = "12345"
+    }
+    installIdPortenAuthMock {
+        alwaysAuthenticated = true
+        setAsDefault = true
+        staticSecurityLevel = LEVEL_4
         staticUserPid = "12345"
     }
 }
