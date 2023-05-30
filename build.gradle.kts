@@ -50,6 +50,7 @@ dependencies {
     testImplementation(Ktor2.Test.clientMock)
     implementation(TmsKtorTokenSupport.tokenXValidationMock)
     implementation(TmsKtorTokenSupport.idportenSidecarMock)
+    implementation(TmsKtorTokenSupport.authenticationInstallerMock)
     testImplementation(Mockk.mockk)
 }
 

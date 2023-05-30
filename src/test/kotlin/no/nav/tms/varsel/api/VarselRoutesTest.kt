@@ -31,6 +31,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel.LEVEL_4
 import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
@@ -255,16 +256,18 @@ fun TestApplicationBuilder.mockVarselApi(
 }
 
 private fun installAuthMock(securityLevel: SecurityLevel): Application.() -> Unit = {
-    installTokenXAuthMock {
-        alwaysAuthenticated = true
-        setAsDefault = false
-        staticSecurityLevel = securityLevel
-        staticUserPid = "12345"
-    }
-    installIdPortenAuthMock {
-        alwaysAuthenticated = true
-        setAsDefault = true
-        staticSecurityLevel = LEVEL_4
-        staticUserPid = "12345"
+    installMockedAuthenticators {
+        installTokenXAuthMock {
+            alwaysAuthenticated = true
+            setAsDefault = false
+            staticSecurityLevel = securityLevel
+            staticUserPid = "12345"
+        }
+        installIdPortenAuthMock {
+            alwaysAuthenticated = true
+            setAsDefault = true
+            staticSecurityLevel = LEVEL_4
+            staticUserPid = "12345"
+        }
     }
 }
