@@ -21,6 +21,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
+import no.nav.tms.token.support.idporten.sidecar.LoginLevel
 import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
@@ -39,9 +40,11 @@ fun Application.varselApi(
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
         installAuthenticators {
-            installTokenXAuth()
             installIdPortenAuth {
                 setAsDefault = true
+            }
+            installTokenXAuth {
+                setAsDefault = false
             }
         }
     }
