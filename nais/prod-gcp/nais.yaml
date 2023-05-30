@@ -8,6 +8,8 @@ metadata:
 spec:
   envFrom:
     - secret: tms-varsel-api-secrets
+  ingresses:
+    - "https://nav.no/varsel"
   tokenx:
     enabled: true
   idporten:
