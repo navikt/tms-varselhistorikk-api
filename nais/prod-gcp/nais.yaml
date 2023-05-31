@@ -9,7 +9,7 @@ spec:
   envFrom:
     - secret: tms-varsel-api-secrets
   ingresses:
-    - "https://nav.no/varsel"
+    - "https://www.nav.no/tms-varsel-api"
   tokenx:
     enabled: true
   idporten:
