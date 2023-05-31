@@ -107,11 +107,13 @@ fun jsonConfig(): Json {
 
 val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthenticationMethod") {
     on(CallSetup) { call ->
+        val metaroutes = listOf("/metrics", "/internal/isReady", "/internal/isAlive")
         val originalUri = call.request.uri
         if (call.request.headers.contains(TokenXHeader.Authorization)) {
             call.mutableOriginConnectionPoint.uri = "/tokenx$originalUri"
         } else {
-            call.mutableOriginConnectionPoint.uri = "/idporten$originalUri"
+            if (!metaroutes.contains(originalUri))
+                call.mutableOriginConnectionPoint.uri = "/idporten$originalUri"
         }
     }
 }

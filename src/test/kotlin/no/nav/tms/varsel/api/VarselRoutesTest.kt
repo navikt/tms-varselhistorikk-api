@@ -119,6 +119,20 @@ class VarselRoutesTest {
     }
 
     @Test
+    fun `Metaroutes reroutes ikke`() =
+        testApplication {
+            setupExternalServices(inaktiveVarslerFromEventHandler = listOf())
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4, false)
+            )
+
+            client.get("/internal/isAlive").status shouldBe HttpStatusCode.OK
+            client.get("/internal/isReady").status shouldBe HttpStatusCode.OK
+        }
+
+
+    @Test
     fun `Henter alle aktive varsler`() {
         val varsler = listOf(
             VarselTestData.varsel(type = VarselType.BESKJED),
@@ -272,14 +286,17 @@ private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): 
     }
 }
 
-private fun installIdportenAuthenticatedMock(securityLevel: IdportenSecurityLevel): Application.() -> Unit = {
+private fun installIdportenAuthenticatedMock(
+    securityLevel: IdportenSecurityLevel,
+    authenticated: Boolean = true
+): Application.() -> Unit = {
     installMockedAuthenticators {
         installTokenXAuthMock {
             alwaysAuthenticated = false
             setAsDefault = false
         }
         installIdPortenAuthMock {
-            alwaysAuthenticated = true
+            alwaysAuthenticated = authenticated
             setAsDefault = true
             staticSecurityLevel = securityLevel
             staticUserPid = "12345"
