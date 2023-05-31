@@ -75,15 +75,17 @@ fun Application.varselApi(
     }
 
     routing {
-        meta(collectorRegistry)
-        authenticate {
-            route("/idporten") {
-                varsel(varselConsumer) { IdportenUserFactory.createIdportenUser(call).tokenString }
+        route("/tms-varsel-api") {
+            meta(collectorRegistry)
+            authenticate {
+                route("/idporten") {
+                    varsel(varselConsumer) { IdportenUserFactory.createIdportenUser(call).tokenString }
+                }
             }
-        }
-        authenticate(TokenXAuthenticator.name) {
-            route("/tokenx") {
-                varsel(varselConsumer) { TokenXUserFactory.createTokenXUser(call).tokenString }
+            authenticate(TokenXAuthenticator.name) {
+                route("/tokenx") {
+                    varsel(varselConsumer) { TokenXUserFactory.createTokenXUser(call).tokenString }
+                }
             }
         }
     }
@@ -120,13 +122,19 @@ val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthent
         val metaroutes = listOf("/metrics", "/internal/isReady", "/internal/isAlive")
         val originalUri = call.request.uri
         if (call.request.headers.contains(TokenXHeader.Authorization)) {
-            call.mutableOriginConnectionPoint.uri = "/tokenx$originalUri"
+            call.mutableOriginConnectionPoint.uri = originalUri.withAuthenication("tokenx")
         } else {
-            if (!metaroutes.contains(originalUri))
-                call.mutableOriginConnectionPoint.uri = "/idporten$originalUri"
+            if (!metaroutes.any { originalUri.contains(it) })
+                call.mutableOriginConnectionPoint.uri = originalUri.withAuthenication("idporten")
         }
     }
 }
+
+private fun String.withAuthenication(autheticationRoute: String) =
+    split("tms-varsel-api")
+        .let {
+            "/tms-varsel-api/$autheticationRoute${it.last()}"
+        }
 
 //DEBU
 

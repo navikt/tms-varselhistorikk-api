@@ -15,7 +15,6 @@ fun main() {
     embeddedServer(
         factory = Netty,
         environment = applicationEngineEnvironment {
-            rootPath = "tms-varsel-api"
             module {
                 varselApi(
                     corsAllowedOrigins = environment.corsAllowedOrigins,

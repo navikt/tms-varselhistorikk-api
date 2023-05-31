@@ -9,11 +9,17 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.*
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.hooks.CallSetup
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.mutableOriginConnectionPoint
+import io.ktor.server.request.uri
 import io.ktor.server.response.respond
+import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -58,7 +64,7 @@ class VarselRoutesTest {
                 authMockInstaller = installTokenXAuthenticatedMock(TokenXSecurityLevel.LEVEL_4)
             )
 
-            client.get("/inaktive").status shouldBe HttpStatusCode.Unauthorized
+            client.get("/tms-varsel-api/inaktive").status shouldBe HttpStatusCode.Unauthorized
             val response = client.get("/inaktive") {
                 header(TokenXHeader.Authorization, "tokenxtoken")
             }
@@ -87,7 +93,7 @@ class VarselRoutesTest {
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            client.get("/inaktive") {
+            client.get("/tms-varsel-api/inaktive") {
                 header(TokenXHeader.Authorization, "tokenxtoken")
             }.status shouldBe HttpStatusCode.Unauthorized
 
@@ -127,8 +133,8 @@ class VarselRoutesTest {
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4, false)
             )
 
-            client.get("/internal/isAlive").status shouldBe HttpStatusCode.OK
-            client.get("/internal/isReady").status shouldBe HttpStatusCode.OK
+            client.get("/tms-varsel-api/internal/isAlive").status shouldBe HttpStatusCode.OK
+            client.get("/tms-varsel-api/internal/isReady").status shouldBe HttpStatusCode.OK
         }
 
 
@@ -150,14 +156,14 @@ class VarselRoutesTest {
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            client.get("/aktive") {
+            client.get("/tms-varsel-api/aktive") {
                 header(
                     TokenXHeader.Authorization,
                     "tokenxtoken"
                 )
             }.status shouldBe HttpStatusCode.Unauthorized
 
-            val response = client.get("/aktive")
+            val response = client.get("/tms-varsel-api/aktive")
             response.status shouldBe HttpStatusCode.OK
 
             val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
@@ -196,7 +202,7 @@ class VarselRoutesTest {
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
-            val response = client.get("antall/aktive")
+            val response = client.get("/tms-varsel-api/antall/aktive")
 
             response.status shouldBe HttpStatusCode.OK
 
@@ -233,7 +239,6 @@ class VarselRoutesTest {
             }
         }
     }
-
     private fun ApplicationTestBuilder.setupVarselConsumer(
         tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
             coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
@@ -303,3 +308,5 @@ private fun installIdportenAuthenticatedMock(
         }
     }
 }
+
+
