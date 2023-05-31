@@ -15,7 +15,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
@@ -90,6 +89,17 @@ fun Application.varselApi(
     }
 
     configureShutdownHook(httpClient)
+
+    logRoutes()
+}
+
+private fun Application.logRoutes() {
+    val allRoutes = allRoutes(plugin(Routing))
+    val allRoutesWithMethod = allRoutes.filter { it.selector is HttpMethodRouteSelector }
+    log.info("Application has ${allRoutesWithMethod.size} routes")
+    allRoutesWithMethod.forEach {
+        log.info("route: $it")
+    }
 }
 
 private fun Application.configureShutdownHook(httpClient: HttpClient) {
@@ -117,3 +127,7 @@ val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthent
         }
     }
 }
+
+//DEBU
+
+fun allRoutes(root: Route): List<Route> = listOf(root) + root.children.flatMap { allRoutes(it) }
