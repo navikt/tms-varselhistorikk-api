@@ -22,12 +22,11 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
+import no.nav.tms.token.support.tokendings.exchange.TokenXHeader
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
-
-const val SIDECAR_WORKAROUND_HEADER = "token-x-authorization"
 
 
 fun Application.varselApi(
@@ -99,10 +98,6 @@ private fun Application.configureShutdownHook(httpClient: HttpClient) {
     }
 }
 
-val PipelineContext<Unit, ApplicationCall>.userToken: String
-    get() = TokenXUserFactory.createTokenXUser(call).tokenString
-
-
 fun jsonConfig(): Json {
     return Json {
         this.ignoreUnknownKeys = true
@@ -113,7 +108,7 @@ fun jsonConfig(): Json {
 val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthenticationMethod") {
     on(CallSetup) { call ->
         val originalUri = call.request.uri
-        if (call.request.headers.contains(SIDECAR_WORKAROUND_HEADER)) {
+        if (call.request.headers.contains(TokenXHeader.Authorization)) {
             call.mutableOriginConnectionPoint.uri = "/tokenx$originalUri"
         } else {
             call.mutableOriginConnectionPoint.uri = "/idporten$originalUri"

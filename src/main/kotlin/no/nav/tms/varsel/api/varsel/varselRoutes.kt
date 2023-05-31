@@ -8,7 +8,6 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
-import no.nav.tms.varsel.api.userToken
 
 fun Route.varsel(
     varselConsumer: VarselConsumer,

@@ -24,6 +24,7 @@ import io.mockk.mockk
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
+import no.nav.tms.token.support.tokendings.exchange.TokenXHeader
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel as IdportenSecurityLevel
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel as TokenXSecurityLevel
@@ -59,7 +60,7 @@ class VarselRoutesTest {
 
             client.get("/inaktive").status shouldBe HttpStatusCode.Unauthorized
             val response = client.get("/inaktive") {
-                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+                header(TokenXHeader.Authorization, "tokenxtoken")
             }
             response.status shouldBe HttpStatusCode.OK
 
@@ -87,7 +88,7 @@ class VarselRoutesTest {
             )
 
             client.get("/inaktive") {
-                header(SIDECAR_WORKAROUND_HEADER, "tokenxtoken")
+                header(TokenXHeader.Authorization, "tokenxtoken")
             }.status shouldBe HttpStatusCode.Unauthorized
 
             val response = client.get("/inaktive")
@@ -137,7 +138,7 @@ class VarselRoutesTest {
 
             client.get("/aktive") {
                 header(
-                    SIDECAR_WORKAROUND_HEADER,
+                    TokenXHeader.Authorization,
                     "tokenxtoken"
                 )
             }.status shouldBe HttpStatusCode.Unauthorized
