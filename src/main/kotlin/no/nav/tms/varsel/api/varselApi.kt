@@ -27,6 +27,7 @@ import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 
+private const val ROOT_PATH = "/tms-varsel-api"
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
@@ -37,6 +38,8 @@ fun Application.varselApi(
         installAuthenticators {
             installIdPortenAuth {
                 setAsDefault = true
+                rootPath = ROOT_PATH
+                inheritProjectRootPath = false
             }
             installTokenXAuth {
                 setAsDefault = false
@@ -75,7 +78,7 @@ fun Application.varselApi(
     }
 
     routing {
-        route("/tms-varsel-api") {
+        route(ROOT_PATH) {
             meta(collectorRegistry)
             authenticate {
                 route("/idporten") {
