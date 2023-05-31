@@ -8,8 +8,14 @@ metadata:
 spec:
   envFrom:
     - secret: tms-varsel-api-secrets
+  ingresses:
+    - "https://www.intern.dev.nav.no/tms-varsel-api"
   tokenx:
     enabled: true
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
   image: {{version}}
   port: 8080
   liveness:
@@ -21,6 +27,8 @@ spec:
   prometheus:
     enabled: true
     path: /tms-varsel-api/metrics
+  secureLogs:
+    enabled: true
   replicas:
     min: 2
     max: 4
