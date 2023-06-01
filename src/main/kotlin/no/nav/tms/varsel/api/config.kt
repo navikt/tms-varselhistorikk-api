@@ -21,6 +21,7 @@ data class Environment(
     val corsAllowedSchemes: String = getEnvVar("CORS_ALLOWED_SCHEMES","https"),
     val eventHandlerURL: String = getEnvVar("EVENT_HANDLER_URL"),
     val eventhandlerClientId: String = getEnvVar("EVENTHANDLER_CLIENT_ID"),
+    val eventAggreagtorClientId:String = getEnvVar("EVENTAGGREGATOR_CLIENT_ID"),
 )
 
 object HttpClientBuilder {

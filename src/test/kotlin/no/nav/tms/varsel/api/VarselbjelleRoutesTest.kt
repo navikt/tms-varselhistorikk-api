@@ -12,15 +12,10 @@ import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.varsel.VarselType
-import no.nav.tms.varsel.api.varsel.VarselbjelleVarsel
 import no.nav.tms.varsel.api.varsel.VarselbjelleVarsler
 import org.junit.jupiter.api.Test
 
 class VarselbjelleRoutesTest {
-
-    private val tokendingsMckk = mockk<TokendingsService>().apply {
-        coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
-    }
 
     @Test
     fun `Varsel har riktige felter`() = testApplication {
@@ -33,9 +28,9 @@ class VarselbjelleRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS)
         )
         testApplication {
-            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
-                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(SecurityLevel.LEVEL_4)
             )
 

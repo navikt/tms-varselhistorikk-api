@@ -1,5 +1,6 @@
 package no.nav.tms.varsel.api
 
+import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.HttpStatusCode
@@ -26,6 +27,7 @@ import java.time.ZonedDateTime
 
 
 const val eventhandlerTestUrl = "https://test.eventhandler.no"
+const val aggregatorTestUrl = "https://aggregator.test"
 
 object VarselTestData {
     fun varsel(
@@ -75,7 +77,7 @@ fun TestApplicationBuilder.mockVarselApi(
     }
 }
 
-fun ApplicationTestBuilder.setupExternalServices(
+fun ApplicationTestBuilder.setupEventhandlerService(
     aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
     inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
 ) {
@@ -84,10 +86,12 @@ fun ApplicationTestBuilder.setupExternalServices(
             install(ContentNegotiation) { json() }
             routing {
                 get("/fetch/varsel/aktive") {
+                    call.request.headers["Authorization"] shouldBe "Bearer handlertoken"
                     call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
                 }
 
                 get("/fetch/varsel/inaktive") {
+                    call.request.headers["Authorization"] shouldBe "Bearer handlertoken"
                     call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
                 }
             }
@@ -97,7 +101,8 @@ fun ApplicationTestBuilder.setupExternalServices(
 
 fun ApplicationTestBuilder.setupVarselConsumer(
     tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
-        coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
+        coEvery { exchangeToken(any(), "test:eventhandler") } returns "handlertoken"
+        coEvery { exchangeToken(any(), "test:eventaggregator") } returns "aggregatortoken"
     }
 ) = VarselConsumer(
     client = createClient {
@@ -108,10 +113,12 @@ fun ApplicationTestBuilder.setupVarselConsumer(
 
     },
     eventHandlerBaseURL = eventhandlerTestUrl,
-    eventhandlerClientId = "",
-    tokendingsService = tokendingsService
+    eventhandlerClientId = "test:eventhandler",
+    tokendingsService = tokendingsService,
+    eventAggregatorBaseURL = aggregatorTestUrl,
+    eventAggregaorClientId = "test:eventaggregator",
 
-)
+    )
 
 fun installIdportenAuthenticatedMock(
     securityLevel: SecurityLevel,

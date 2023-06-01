@@ -25,6 +25,8 @@ fun main() {
                         eventHandlerBaseURL = environment.eventHandlerURL,
                         eventhandlerClientId = environment.eventhandlerClientId,
                         tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
+                        eventAggregatorBaseURL = "http://dittnav-event-aggregator",
+                        eventAggregaorClientId = environment.eventAggreagtorClientId,
                     )
                 )
             }

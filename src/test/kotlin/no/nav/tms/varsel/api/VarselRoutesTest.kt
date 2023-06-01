@@ -4,18 +4,29 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
+import io.ktor.server.application.call
+import io.ktor.server.application.install
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.receiveText
+import io.ktor.server.response.respond
+import io.ktor.server.routing.post
+import io.ktor.server.routing.routing
 import io.ktor.server.testing.testApplication
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
 import no.nav.tms.token.support.tokendings.exchange.TokenXHeader
 import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel as IdportenSecurityLevel
-import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel as TokenXSecurityLevel
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.AntallVarsler
@@ -24,10 +35,6 @@ import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 
 class VarselRoutesTest {
-
-    private val tokendingsMckk = mockk<TokendingsService>().apply {
-        coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
-    }
 
     @Test
     fun `Henter alle inaktiverte varsler med tokenX autentisering`() {
@@ -39,9 +46,9 @@ class VarselRoutesTest {
         )
         //tokenx
         testApplication {
-            setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(inaktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
-                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installTokenXAuthenticatedMock(TokenXSecurityLevel.LEVEL_4)
             )
 
@@ -68,9 +75,9 @@ class VarselRoutesTest {
         )
 
         testApplication {
-            setupExternalServices(inaktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(inaktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
-                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
             )
 
@@ -108,9 +115,9 @@ class VarselRoutesTest {
     @Test
     fun `Metaroutes reroutes ikke`() =
         testApplication {
-            setupExternalServices(inaktiveVarslerFromEventHandler = listOf())
+            setupEventhandlerService(inaktiveVarslerFromEventHandler = listOf())
             mockVarselApi(
-                varselConsumer = setupVarselConsumer(tokendingsMckk),
+                varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4, false)
             )
 
@@ -131,7 +138,7 @@ class VarselRoutesTest {
         )
 
         testApplication {
-            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
@@ -177,7 +184,7 @@ class VarselRoutesTest {
             VarselTestData.varsel(type = VarselType.INNBOKS),
         )
         testApplication {
-            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
@@ -194,10 +201,42 @@ class VarselRoutesTest {
         }
 
         testApplication {
-            setupExternalServices(aktiveVarslerFromEventHandler = varsler)
+            setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
         }
 
 
+    }
+
+    @Test
+    fun `markerer varsler som lest`() = testApplication {
+        val expeectedEventId = "hhuu33-91sdf-shdkfh"
+        var postCount = 0
+        externalServices {
+            hosts(aggregatorTestUrl) {
+                install(ContentNegotiation) { json() }
+                routing {
+                    post("beskjed/done") {
+                        Json.parseToJsonElement(call.receiveText()).apply {
+                            this.jsonObject["eventId"]?.jsonPrimitive?.content shouldBe expeectedEventId
+                        }
+                        call.request.headers["Authorization"] shouldBe "Bearer aggregatortoken"
+                        postCount++
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+        }
+
+        mockVarselApi(
+            varselConsumer = setupVarselConsumer(),
+            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+        )
+        client.post("/tms-varsel-api/beskjed/inaktiver"){
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody("""{"eventId": "$expeectedEventId"}""")
+        }.status shouldBe HttpStatusCode.OK
+
+        postCount shouldBe 1
     }
 }
 
@@ -215,5 +254,4 @@ private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): 
         }
     }
 }
-
 
