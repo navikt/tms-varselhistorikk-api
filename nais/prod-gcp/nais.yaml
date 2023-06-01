@@ -6,8 +6,6 @@ metadata:
   labels:
     team: min-side
 spec:
-  envFrom:
-    - secret: tms-varsel-api-secrets
   ingresses:
     - "https://www.nav.no/tms-varsel-api"
   tokenx:
@@ -50,3 +48,7 @@ spec:
   env:
     - name: EVENT_AGGREGATOR_CLIENT_ID
       value: prod-gcp:min-side:dittnav-event-aggregator
+    - name: CORS_ALLOWED_ORIGINS
+      value: www.nav.no
+    - name: EVENTHANDLER_CLIENT_ID
+      value: prod-gcp:min-side:dittnav-event-handler

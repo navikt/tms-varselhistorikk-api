@@ -32,7 +32,6 @@ private const val ROOT_PATH = "/tms-varsel-api"
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
-    corsAllowedSchemes: String,
     httpClient: HttpClient,
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
@@ -66,7 +65,7 @@ fun Application.varselApi(
 
     install(CORS) {
         allowCredentials = true
-        allowHost(corsAllowedOrigins, schemes = listOf(corsAllowedSchemes))
+        allowHost(corsAllowedOrigins, schemes = listOf("https"))
         allowHeader(HttpHeaders.ContentType)
     }
 

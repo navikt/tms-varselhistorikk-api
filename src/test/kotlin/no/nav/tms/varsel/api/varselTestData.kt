@@ -62,14 +62,12 @@ object VarselTestData {
 fun TestApplicationBuilder.mockVarselApi(
     httpClient: HttpClient = HttpClientBuilder.build(),
     corsAllowedOrigins: String = "*.nav.no",
-    corsAllowedSchemes: String = "https",
     varselConsumer: VarselConsumer = mockk(relaxed = true),
     authMockInstaller: Application.() -> Unit
 ) {
     application {
         varselApi(
             corsAllowedOrigins = corsAllowedOrigins,
-            corsAllowedSchemes = corsAllowedSchemes,
             httpClient = httpClient,
             varselConsumer = varselConsumer,
             authInstaller = authMockInstaller
