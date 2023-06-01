@@ -26,6 +26,7 @@ import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
+import no.nav.tms.varsel.api.varsel.varselbjelle
 
 private const val ROOT_PATH = "/tms-varsel-api"
 
@@ -83,6 +84,7 @@ fun Application.varselApi(
             authenticate {
                 route("/idporten") {
                     varsel(varselConsumer) { IdportenUserFactory.createIdportenUser(call).tokenString }
+                    varselbjelle(varselConsumer)
                 }
             }
             authenticate(TokenXAuthenticator.name) {

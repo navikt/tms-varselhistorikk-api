@@ -2,28 +2,11 @@ package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.*
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
-import io.ktor.server.application.createApplicationPlugin
-import io.ktor.server.application.hooks.CallSetup
-import io.ktor.server.application.install
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.mutableOriginConnectionPoint
-import io.ktor.server.request.uri
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Routing
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.TestApplicationBuilder
 import io.ktor.server.testing.testApplication
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -37,13 +20,11 @@ import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel as TokenXSe
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
-import no.nav.tms.varsel.api.varsel.Varsel
-import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 
 class VarselRoutesTest {
-    private val eventhandlerTestUrl = "https://test.eventhandler.no"
+
     private val tokendingsMckk = mockk<TokendingsService>().apply {
         coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
     }
@@ -218,62 +199,6 @@ class VarselRoutesTest {
 
 
     }
-
-
-    private fun ApplicationTestBuilder.setupExternalServices(
-        aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-        inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-    ) {
-        externalServices {
-            hosts(eventhandlerTestUrl) {
-                install(ContentNegotiation) { json() }
-                routing {
-                    get("/fetch/varsel/aktive") {
-                        call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
-                    }
-
-                    get("/fetch/varsel/inaktive") {
-                        call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
-                    }
-                }
-            }
-        }
-    }
-    private fun ApplicationTestBuilder.setupVarselConsumer(
-        tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
-            coEvery { exchangeToken(any(), any()) } returns "<dummytoken>"
-        }
-    ) = VarselConsumer(
-        client = createClient {
-            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-                json(jsonConfig())
-            }
-            install(HttpTimeout)
-
-        },
-        eventHandlerBaseURL = eventhandlerTestUrl,
-        eventhandlerClientId = "",
-        tokendingsService = tokendingsService
-
-    )
-}
-
-fun TestApplicationBuilder.mockVarselApi(
-    httpClient: HttpClient = HttpClientBuilder.build(),
-    corsAllowedOrigins: String = "*.nav.no",
-    corsAllowedSchemes: String = "https",
-    varselConsumer: VarselConsumer = mockk(relaxed = true),
-    authMockInstaller: Application.() -> Unit
-) {
-    application {
-        varselApi(
-            corsAllowedOrigins = corsAllowedOrigins,
-            corsAllowedSchemes = corsAllowedSchemes,
-            httpClient = httpClient,
-            varselConsumer = varselConsumer,
-            authInstaller = authMockInstaller
-        )
-    }
 }
 
 private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): Application.() -> Unit = {
@@ -287,24 +212,6 @@ private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): 
         installIdPortenAuthMock {
             alwaysAuthenticated = false
             setAsDefault = true
-        }
-    }
-}
-
-private fun installIdportenAuthenticatedMock(
-    securityLevel: IdportenSecurityLevel,
-    authenticated: Boolean = true
-): Application.() -> Unit = {
-    installMockedAuthenticators {
-        installTokenXAuthMock {
-            alwaysAuthenticated = false
-            setAsDefault = false
-        }
-        installIdPortenAuthMock {
-            alwaysAuthenticated = authenticated
-            setAsDefault = true
-            staticSecurityLevel = securityLevel
-            staticUserPid = "12345"
         }
     }
 }

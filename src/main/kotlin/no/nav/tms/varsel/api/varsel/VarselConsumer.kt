@@ -29,6 +29,13 @@ class VarselConsumer(
 
         return varsler.map { InaktivtVarsel.fromVarsel(it) }
     }
+
+    suspend fun getVarselbjelleVarsler(userToken: String, authLevel: Int): VarselbjelleVarsler {
+        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
+        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
+
+        return VarselbjelleVarsler.fromVarsler(varsler, authLevel)
+    }
 }
 
 @Serializable
@@ -45,7 +52,18 @@ data class Varsel(
     val fristUtløpt: Boolean?,
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
-)
+) {
+    fun toVarselbjelleVarsel(authLevel: Int) = VarselbjelleVarsel(
+        eventId = eventId,
+        tidspunkt = forstBehandlet,
+        isMasked = sikkerhetsnivaa > authLevel,
+        tekst = if (sikkerhetsnivaa > authLevel) null else tekst,
+        link = if (sikkerhetsnivaa > authLevel) null else link,
+        type = type.name,
+        eksternVarslingSendt = eksternVarslingSendt,
+        eksternVarslingKanaler = eksternVarslingKanaler
+    )
+}
 
 enum class VarselType {
     OPPGAVE,
