@@ -6,8 +6,6 @@ metadata:
   labels:
     team: min-side
 spec:
-  envFrom:
-    - secret: tms-varsel-api-secrets
   ingresses:
     - "https://www.intern.dev.nav.no/tms-varsel-api"
   tokenx:
@@ -39,6 +37,7 @@ spec:
     outbound:
       rules:
         - application: dittnav-event-handler
+        - application: dittnav-event-aggregator
   resources:
     limits:
       cpu: "1"
@@ -46,3 +45,11 @@ spec:
     requests:
       cpu: "50m"
       memory: 64Mi
+  env:
+    - name: EVENTAGGREGATOR_CLIENT_ID
+      value: dev-gcp:min-side:dittnav-event-aggregator
+    - name: CORS_ALLOWED_ORIGINS
+      value: www.intern.dev.nav.no
+    - name: EVENTHANDLER_CLIENT_ID
+      value: dev-gcp:min-side:dittnav-event-handler
+

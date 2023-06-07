@@ -18,13 +18,14 @@ fun main() {
             module {
                 varselApi(
                     corsAllowedOrigins = environment.corsAllowedOrigins,
-                    corsAllowedSchemes = environment.corsAllowedSchemes,
                     httpClient = httpClient,
                     varselConsumer = VarselConsumer(
                         client = httpClient,
-                        eventHandlerBaseURL = environment.eventHandlerURL,
+                        eventHandlerBaseURL = "http://dittnav-event-handler/dittnav-event-handler",
                         eventhandlerClientId = environment.eventhandlerClientId,
                         tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
+                        eventAggregatorBaseURL = "http://dittnav-event-aggregator",
+                        eventAggregaorClientId = environment.eventAggreagtorClientId,
                     )
                 )
             }
