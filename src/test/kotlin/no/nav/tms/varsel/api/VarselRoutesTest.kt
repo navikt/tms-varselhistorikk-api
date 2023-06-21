@@ -174,6 +174,39 @@ class VarselRoutesTest {
     }
 
     @Test
+    fun `Henter aktive varsler for nivå 3`() = testApplication {
+        setupEventhandlerService(VarselTestData.varsel(type = VarselType.BESKJED, isMasked = true),
+            VarselTestData.varsel(type = VarselType.OPPGAVE, isMasked = true)
+        )
+        mockVarselApi(
+            varselConsumer = setupVarselConsumer(),
+            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_3)
+        )
+
+        client.get("/tms-varsel-api/aktive") {
+            header(
+                TokenXHeader.Authorization,
+                "tokenxtoken"
+            )
+        }.status shouldBe HttpStatusCode.Unauthorized
+
+        val response = client.get("/tms-varsel-api/aktive")
+        response.status shouldBe HttpStatusCode.OK
+
+        val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
+        aktiveVarsler.beskjeder.size shouldBe 1
+        aktiveVarsler.oppgaver.size shouldBe 1
+        aktiveVarsler.innbokser.size shouldBe 0
+
+        (aktiveVarsler.beskjeder+ aktiveVarsler.oppgaver).forEach {
+            it.isMasked shouldBe true
+            it.tekst shouldBe null
+            it.link shouldBe null
+        }
+
+    }
+
+    @Test
     fun `Henter antall aktive varsler`() {
         val varsler = listOf(
             VarselTestData.varsel(type = VarselType.BESKJED),
@@ -231,7 +264,7 @@ class VarselRoutesTest {
             varselConsumer = setupVarselConsumer(),
             authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
         )
-        client.post("/tms-varsel-api/beskjed/inaktiver"){
+        client.post("/tms-varsel-api/beskjed/inaktiver") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody("""{"eventId": "$expeectedEventId"}""")
         }.status shouldBe HttpStatusCode.OK
