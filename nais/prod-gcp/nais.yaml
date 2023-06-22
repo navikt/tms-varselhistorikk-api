@@ -14,6 +14,7 @@ spec:
     enabled: true
     sidecar:
       enabled: true
+      level: Level3
   image: {{version}}
   port: 8080
   liveness:

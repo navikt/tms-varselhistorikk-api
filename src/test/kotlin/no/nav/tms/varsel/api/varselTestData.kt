@@ -47,8 +47,8 @@ object VarselTestData {
         type = type,
         eventId = eventId,
         forstBehandlet = forstBehandlet,
-        tekst = tekst,
-        link = link,
+        tekst = if (isMasked) null else tekst,
+        link = if(isMasked) null else link,
         isMasked = isMasked,
         sikkerhetsnivaa = sikkerhetsnivaa,
         sistOppdatert = sistOppdatert,
@@ -74,6 +74,11 @@ fun TestApplicationBuilder.mockVarselApi(
         )
     }
 }
+
+
+fun ApplicationTestBuilder.setupEventhandlerService(vararg varsler: Varsel) = setupEventhandlerService(
+    aktiveVarslerFromEventHandler = varsler.toList()
+)
 
 fun ApplicationTestBuilder.setupEventhandlerService(
     aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
