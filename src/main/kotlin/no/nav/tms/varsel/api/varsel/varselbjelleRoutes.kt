@@ -14,7 +14,7 @@ import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 fun Route.varselbjelle(varselConsumer: VarselConsumer) {
     route("/varselbjelle") {
         get("/varsler") {
-            call.respond(varselConsumer.getVarselbjelleVarsler(idportenUser.tokenString, idportenUser.loginLevel))
+            call.respond(varselConsumer.getVarselbjelleVarsler(idportenUser.tokenString))
         }
     }
 }

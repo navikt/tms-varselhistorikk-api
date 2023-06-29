@@ -21,11 +21,9 @@ fun main() {
                     httpClient = httpClient,
                     varselConsumer = VarselConsumer(
                         client = httpClient,
-                        eventHandlerBaseURL = "http://dittnav-event-handler/dittnav-event-handler",
-                        eventhandlerClientId = environment.eventhandlerClientId,
+                        varselAuthorityUrl = "http://tms-varsel-authority",
+                        varselAuthorityClientId = environment.eventhandlerClientId,
                         tokendingsService = TokendingsServiceBuilder.buildTokendingsService(),
-                        eventAggregatorBaseURL = "http://dittnav-event-aggregator",
-                        eventAggregaorClientId = environment.eventAggreagtorClientId,
                     )
                 )
             }

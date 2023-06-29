@@ -19,13 +19,13 @@ class VarselbjelleRoutesTest {
 
     @Test
     fun `Varsel har riktige felter`() = testApplication {
-        val expectedBeskjed = VarselTestData.varsel(type = VarselType.BESKJED)
+        val expectedBeskjed = VarselTestData.varsel(type = VarselType.beskjed)
         val varsler = listOf(
             expectedBeskjed,
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.INNBOKS)
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks)
         )
         testApplication {
             setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
@@ -39,15 +39,16 @@ class VarselbjelleRoutesTest {
                 val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
                 varselbjellevarsler.beskjeder.size shouldBe 2
                 varselbjellevarsler.oppgaver.size shouldBe 3
-                val beskjed = varselbjellevarsler.beskjeder.first { it.eventId == expectedBeskjed.eventId }
-                beskjed.eventId shouldBe expectedBeskjed.eventId
-                beskjed.link shouldBe expectedBeskjed.link
-                beskjed.tekst shouldBe expectedBeskjed.tekst
-                beskjed.isMasked shouldBe expectedBeskjed.isMasked
+                val beskjed = varselbjellevarsler.beskjeder.first { it.eventId == expectedBeskjed.varselId }
+                beskjed.varselId shouldBe expectedBeskjed.varselId
+                beskjed.eventId shouldBe expectedBeskjed.varselId
+                beskjed.isMasked shouldBe (expectedBeskjed.innhold == null)
+                beskjed.link shouldBe expectedBeskjed.innhold?.link
+                beskjed.tekst shouldBe expectedBeskjed.innhold?.tekst
                 beskjed.eksternVarslingKanaler shouldBe expectedBeskjed.eksternVarslingKanaler
-                beskjed.tidspunkt shouldBe expectedBeskjed.forstBehandlet
+                beskjed.tidspunkt shouldBe expectedBeskjed.opprettet
                 beskjed.eksternVarslingSendt shouldBe expectedBeskjed.eksternVarslingSendt
-                beskjed.type shouldBe "BESKJED"
+                beskjed.type shouldBe "beskjed"
             }
         }
     }

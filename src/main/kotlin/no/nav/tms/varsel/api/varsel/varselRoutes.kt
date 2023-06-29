@@ -10,9 +10,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 
 fun Route.varsel(
@@ -44,7 +41,7 @@ fun Route.varsel(
     }
 
     post("beskjed/inaktiver") {
-        varselConsumer.postInaktiver(eventId = call.eventId(), userToken = tokenResolver())
+        varselConsumer.postInaktiver(varselId = call.varselId(), userToken = tokenResolver())
         call.respond(HttpStatusCode.OK)
     }
 }
@@ -52,11 +49,12 @@ fun Route.varsel(
 @Serializable
 data class AntallVarsler(val beskjeder: Int, val oppgaver: Int, val innbokser: Int)
 
+@Serializable
+data class InaktiverVarselBody(
+    val eventId: String? = null,
+    val varselId: String? = null
+)
 
-private suspend fun ApplicationCall.eventId(): String = receive<String>().let {
-    if (it.isEmpty()) {
-        throw IllegalArgumentException("request mangler body innhold")
-    }
-    Json.parseToJsonElement(it).jsonObject["eventId"]?.jsonPrimitive?.content
-        ?: throw IllegalArgumentException("eventId finnes ikke i body")
+private suspend fun ApplicationCall.varselId(): String = receive<InaktiverVarselBody>().let {
+    it.varselId ?: it.eventId ?: throw IllegalArgumentException("Mangler varselId eller eventId i body")
 }

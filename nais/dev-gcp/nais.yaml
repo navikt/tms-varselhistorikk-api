@@ -37,8 +37,7 @@ spec:
         - application: tms-min-side-proxy
     outbound:
       rules:
-        - application: dittnav-event-handler
-        - application: dittnav-event-aggregator
+        - application: tms-varsel-authority
   resources:
     limits:
       cpu: "1"
@@ -47,10 +46,8 @@ spec:
       cpu: "50m"
       memory: 64Mi
   env:
-    - name: EVENTAGGREGATOR_CLIENT_ID
-      value: dev-gcp:min-side:dittnav-event-aggregator
     - name: CORS_ALLOWED_ORIGINS
       value: "*.dev.nav.no"
-    - name: EVENTHANDLER_CLIENT_ID
-      value: dev-gcp:min-side:dittnav-event-handler
+    - name: VARSEL_AUTHORITY_CLIENT_ID
+      value: dev-gcp:min-side:tms-varsel-authority
 

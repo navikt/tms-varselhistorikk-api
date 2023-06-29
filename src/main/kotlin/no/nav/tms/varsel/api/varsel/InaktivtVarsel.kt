@@ -9,9 +9,11 @@ import java.time.ZonedDateTime
 
 @Serializable
 data class InaktivtVarsel(
-    val eventId: String,
-    val forstBehandlet: ZonedDateTime,
     val type: VarselType,
+    @Deprecated("Use varselId") val eventId: String,
+    val varselId: String,
+    @Deprecated("Use tidspunkt") val forstBehandlet: ZonedDateTime,
+    val tidspunkt: ZonedDateTime,
     val isMasked: Boolean,
     val tekst: String?,
     val eksternVarslingSendt: Boolean,
@@ -19,11 +21,13 @@ data class InaktivtVarsel(
 ) {
     companion object {
         fun fromVarsel(varsel: Varsel) = InaktivtVarsel(
-            eventId = varsel.eventId,
-            forstBehandlet = varsel.forstBehandlet,
             type = varsel.type,
-            isMasked = varsel.isMasked,
-            tekst = varsel.tekst,
+            eventId = varsel.varselId,
+            varselId = varsel.varselId,
+            forstBehandlet = varsel.opprettet,
+            tidspunkt = varsel.opprettet,
+            isMasked = varsel.innhold == null,
+            tekst = varsel.innhold?.tekst,
             eksternVarslingSendt = varsel.eksternVarslingSendt,
             eksternVarslingKanaler = varsel.eksternVarslingKanaler
         )
