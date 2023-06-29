@@ -25,6 +25,7 @@ import no.nav.tms.varsel.api.varsel.VarselInnhold
 import no.nav.tms.varsel.api.varsel.VarselType
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.*
 
 
 const val varselAuthorityTestUrl = "https://varsel-authority.test"
@@ -34,7 +35,7 @@ object VarselTestData {
         type: VarselType = VarselType.beskjed,
         opprettet: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
         aktivFremTil: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC).plusDays(7),
-        varselId: String = "12345",
+        varselId: String = UUID.randomUUID().toString(),
         tekst: String = "tekst",
         link: String = "http://link.no",
         isMasked: Boolean = false,
