@@ -50,6 +50,6 @@ spec:
     - name: EVENTAGGREGATOR_CLIENT_ID
       value: prod-gcp:min-side:dittnav-event-aggregator
     - name: CORS_ALLOWED_ORIGINS
-      value: www.nav.no
+      value: "*.nav.no"
     - name: EVENTHANDLER_CLIENT_ID
       value: prod-gcp:min-side:dittnav-event-handler
