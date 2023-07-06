@@ -13,17 +13,15 @@ data class VarselbjelleVarsler(
     val oppgaver: List<VarselbjelleVarsel>,
 ) {
     companion object {
-        fun fromVarsler(varsler: List<Varsel>, authLevel: Int): VarselbjelleVarsler {
+        fun fromVarsler(varsler: List<Varsel>): VarselbjelleVarsler {
             val groupedVarsler = varsler.groupBy { it.type }.mapValues { (_, varsler) ->
-                varsler.map { varsel ->
-                    varsel.toVarselbjelleVarsel(authLevel)
-                }
+                varsler.map(VarselbjelleVarsel::fromVarsel)
             }
 
             return VarselbjelleVarsler(
-                beskjeder = (groupedVarsler[VarselType.BESKJED] ?: emptyList()) + (groupedVarsler[VarselType.INNBOKS]
+                beskjeder = (groupedVarsler[VarselType.beskjed] ?: emptyList()) + (groupedVarsler[VarselType.innboks]
                     ?: emptyList()),
-                oppgaver = groupedVarsler[VarselType.OPPGAVE] ?: emptyList()
+                oppgaver = groupedVarsler[VarselType.oppgave] ?: emptyList()
             )
         }
     }
@@ -32,6 +30,7 @@ data class VarselbjelleVarsler(
 @Serializable
 data class VarselbjelleVarsel(
     val eventId: String,
+    val varselId: String,
     val tidspunkt: ZonedDateTime,
     val isMasked: Boolean,
     val tekst: String?,
@@ -39,5 +38,21 @@ data class VarselbjelleVarsel(
     val type: String,
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
-)
+) {
+    companion object {
+        fun fromVarsel(varsel: Varsel) = with(varsel) {
+            VarselbjelleVarsel(
+                eventId = varselId,
+                varselId = varselId,
+                tidspunkt = opprettet,
+                isMasked = innhold == null,
+                tekst = innhold?.tekst,
+                link = innhold?.link,
+                type = type.name,
+                eksternVarslingSendt = eksternVarslingSendt,
+                eksternVarslingKanaler = eksternVarslingKanaler
+            )
+        }
+    }
+}
 

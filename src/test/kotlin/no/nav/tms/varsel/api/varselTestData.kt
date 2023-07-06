@@ -21,41 +21,38 @@ import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
+import no.nav.tms.varsel.api.varsel.VarselInnhold
 import no.nav.tms.varsel.api.varsel.VarselType
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
+import java.util.*
 
 
-const val eventhandlerTestUrl = "https://test.eventhandler.no"
-const val aggregatorTestUrl = "https://aggregator.test"
+const val varselAuthorityTestUrl = "https://varsel-authority.test"
 
 object VarselTestData {
     fun varsel(
-        type: VarselType = VarselType.BESKJED,
-        forstBehandlet: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
-        eventId: String = "12345",
+        type: VarselType = VarselType.beskjed,
+        opprettet: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
+        aktivFremTil: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC).plusDays(7),
+        varselId: String = UUID.randomUUID().toString(),
         tekst: String = "tekst",
         link: String = "http://link.no",
         isMasked: Boolean = false,
-        sistOppdatert: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
-        sikkerhetsnivaa: Int = 4,
         aktiv: Boolean = true,
+        inaktivert: ZonedDateTime? = null,
         eksternVarsling: Boolean = false,
-        prefererteKanaler: List<String> = emptyList(),
-        fristUtløpt: Boolean? = false
+        eksernVarslingKanaler: List<String> = emptyList()
     ) = Varsel(
         type = type,
-        eventId = eventId,
-        forstBehandlet = forstBehandlet,
-        tekst = if (isMasked) null else tekst,
-        link = if(isMasked) null else link,
-        isMasked = isMasked,
-        sikkerhetsnivaa = sikkerhetsnivaa,
-        sistOppdatert = sistOppdatert,
+        varselId = varselId,
+        opprettet = opprettet,
+        aktivFremTil = aktivFremTil,
+        innhold = if (isMasked) null else VarselInnhold(tekst, link),
         aktiv = aktiv,
+        inaktivert = inaktivert,
         eksternVarslingSendt = eksternVarsling,
-        eksternVarslingKanaler = prefererteKanaler,
-        fristUtløpt = fristUtløpt
+        eksternVarslingKanaler = eksernVarslingKanaler
     )
 }
 
@@ -85,16 +82,16 @@ fun ApplicationTestBuilder.setupEventhandlerService(
     inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
 ) {
     externalServices {
-        hosts(eventhandlerTestUrl) {
+        hosts(varselAuthorityTestUrl) {
             install(ContentNegotiation) { json() }
             routing {
-                get("/fetch/varsel/aktive") {
-                    call.request.headers["Authorization"] shouldBe "Bearer handlertoken"
+                get("/varsel/sammendrag/aktive") {
+                    call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
                     call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
                 }
 
-                get("/fetch/varsel/inaktive") {
-                    call.request.headers["Authorization"] shouldBe "Bearer handlertoken"
+                get("/varsel/sammendrag/inaktive") {
+                    call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
                     call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
                 }
             }
@@ -104,8 +101,7 @@ fun ApplicationTestBuilder.setupEventhandlerService(
 
 fun ApplicationTestBuilder.setupVarselConsumer(
     tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
-        coEvery { exchangeToken(any(), "test:eventhandler") } returns "handlertoken"
-        coEvery { exchangeToken(any(), "test:eventaggregator") } returns "aggregatortoken"
+        coEvery { exchangeToken(any(), "test:varsel-authority") } returns "authorityToken"
     }
 ) = VarselConsumer(
     client = createClient {
@@ -115,11 +111,9 @@ fun ApplicationTestBuilder.setupVarselConsumer(
         install(HttpTimeout)
 
     },
-    eventHandlerBaseURL = eventhandlerTestUrl,
-    eventhandlerClientId = "test:eventhandler",
+    varselAuthorityUrl = varselAuthorityTestUrl,
+    varselAuthorityClientId = "test:varsel-authority",
     tokendingsService = tokendingsService,
-    eventAggregatorBaseURL = aggregatorTestUrl,
-    eventAggregaorClientId = "test:eventaggregator",
 
     )
 

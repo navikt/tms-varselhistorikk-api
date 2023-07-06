@@ -17,72 +17,62 @@ import java.time.ZonedDateTime
 
 class VarselConsumer(
     private val client: HttpClient,
-    private val eventHandlerBaseURL: String,
-    private val eventhandlerClientId: String,
-    private val eventAggregatorBaseURL: String,
-    private val eventAggregaorClientId: String,
-    private val tokendingsService: TokendingsService,
+    private val varselAuthorityUrl: String,
+    private val varselAuthorityClientId: String,
+    private val tokendingsService: TokendingsService
 ) {
     suspend fun getAktiveVarsler(userToken: String): AktiveVarsler {
-        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
-        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
-
-        return AktiveVarsler.fromVarsler(varsler)
+        return getVarsler(userToken, "/varsel/sammendrag/aktive")
+            .let (AktiveVarsler::fromVarsler)
     }
 
     suspend fun getInaktiveVarsler(userToken: String): List<InaktivtVarsel> {
-        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
-        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/inaktive", eventhandlerToken)
-
-        return varsler.map { InaktivtVarsel.fromVarsel(it) }
+        return getVarsler( userToken,"/varsel/sammendrag/inaktive")
+            .map(InaktivtVarsel::fromVarsel)
     }
 
-    suspend fun getVarselbjelleVarsler(userToken: String, authLevel: Int): VarselbjelleVarsler {
-        val eventhandlerToken = tokendingsService.exchangeToken(userToken, targetApp = eventhandlerClientId)
-        val varsler: List<Varsel> = client.get("$eventHandlerBaseURL/fetch/varsel/aktive", eventhandlerToken)
-
-        return VarselbjelleVarsler.fromVarsler(varsler, authLevel)
+    suspend fun getVarselbjelleVarsler(userToken: String): VarselbjelleVarsler {
+        return getVarsler(userToken, "/varsel/sammendrag/aktive")
+            .let(VarselbjelleVarsler::fromVarsler)
     }
 
-    suspend fun postInaktiver(userToken: String, eventId: String) {
-        val aggregatorToken = tokendingsService.exchangeToken(userToken, eventAggregaorClientId)
-        client.post("$eventAggregatorBaseURL/beskjed/done") {
-            header(HttpHeaders.Authorization, "Bearer $aggregatorToken")
+    suspend fun postInaktiver(userToken: String, varselId: String) {
+        val authorityToken = tokendingsService.exchangeToken(userToken, varselAuthorityClientId)
+
+        client.post("$varselAuthorityUrl/beskjed/inaktiver") {
+            header(HttpHeaders.Authorization, "Bearer $authorityToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
-            setBody("""{"eventId": "$eventId"}""")
+            setBody("""{"varselId": "$varselId"}""")
         }
+    }
+
+    private suspend fun getVarsler(userToken: String, path: String): List<Varsel> {
+        val authorityToken = tokendingsService.exchangeToken(userToken, targetApp = varselAuthorityClientId)
+        return client.get("$varselAuthorityUrl$path", authorityToken)
     }
 }
 
 @Serializable
 data class Varsel(
-    val eventId: String,
-    val sikkerhetsnivaa: Int,
-    val sistOppdatert: ZonedDateTime,
-    val tekst: String?,
-    val link: String?,
-    val isMasked: Boolean,
-    val aktiv: Boolean,
     val type: VarselType,
-    val forstBehandlet: ZonedDateTime,
-    val fristUtløpt: Boolean?,
+    val varselId: String,
+    val aktiv: Boolean,
+    val innhold: VarselInnhold?,
     val eksternVarslingSendt: Boolean,
-    val eksternVarslingKanaler: List<String>
-) {
-    fun toVarselbjelleVarsel(authLevel: Int) = VarselbjelleVarsel(
-        eventId = eventId,
-        tidspunkt = forstBehandlet,
-        isMasked = sikkerhetsnivaa > authLevel,
-        tekst = if (sikkerhetsnivaa > authLevel) null else tekst,
-        link = if (sikkerhetsnivaa > authLevel) null else link,
-        type = type.name,
-        eksternVarslingSendt = eksternVarslingSendt,
-        eksternVarslingKanaler = eksternVarslingKanaler
-    )
-}
+    val eksternVarslingKanaler: List<String>,
+    val opprettet: ZonedDateTime,
+    val aktivFremTil: ZonedDateTime?,
+    val inaktivert: ZonedDateTime?
+)
+
+@Serializable
+data class VarselInnhold(
+    val tekst: String,
+    val link: String?
+)
 
 enum class VarselType {
-    OPPGAVE,
-    BESKJED,
-    INNBOKS,
+    oppgave,
+    beskjed,
+    innboks,
 }

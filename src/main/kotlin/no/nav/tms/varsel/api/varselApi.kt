@@ -97,17 +97,6 @@ fun Application.varselApi(
     }
 
     configureShutdownHook(httpClient)
-
-    logRoutes()
-}
-
-private fun Application.logRoutes() {
-    val allRoutes = allRoutes(plugin(Routing))
-    val allRoutesWithMethod = allRoutes.filter { it.selector is HttpMethodRouteSelector }
-    log.info("Application has ${allRoutesWithMethod.size} routes")
-    allRoutesWithMethod.forEach {
-        log.info("route: $it")
-    }
 }
 
 private fun Application.configureShutdownHook(httpClient: HttpClient) {
@@ -141,7 +130,3 @@ private fun String.withAuthenication(autheticationRoute: String) =
         .let {
             "/tms-varsel-api/$autheticationRoute${it.last()}"
         }
-
-//DEBU
-
-fun allRoutes(root: Route): List<Route> = listOf(root) + root.children.flatMap { allRoutes(it) }

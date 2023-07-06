@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
@@ -42,6 +42,7 @@ dependencies {
     implementation(Ktor2.Serialization.kotlinX)
     implementation(Micrometer.registryPrometheus)
     implementation(Prometheus.logback)
+    implementation("io.ktor:ktor-client-encoding:2.3.0")
 
     testImplementation(kotlin("test"))
     testImplementation(Kotest.assertionsCore)

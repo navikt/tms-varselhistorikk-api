@@ -2,11 +2,13 @@ package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
+import io.ktor.client.call.*
+import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -33,16 +35,17 @@ import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
+import java.time.ZonedDateTime
 
 class VarselRoutesTest {
 
     @Test
     fun `Henter alle inaktiverte varsler med tokenX autentisering`() {
         val varsler = listOf(
-            VarselTestData.varsel(type = VarselType.BESKJED),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.INNBOKS)
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks)
         )
         //tokenx
         testApplication {
@@ -66,12 +69,12 @@ class VarselRoutesTest {
     fun `Henter inaktiverte varsel med idporten autentisering`() {
 
         val varsler = listOf(
-            VarselTestData.varsel(type = VarselType.BESKJED),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
         )
 
         testApplication {
@@ -92,21 +95,23 @@ class VarselRoutesTest {
             val inaktiveVarsler = Json.decodeFromString<List<InaktivtVarsel>>(response.bodyAsText())
             inaktiveVarsler.size shouldBe 6
             inaktiveVarsler.map { it.type } shouldContainExactlyInAnyOrder listOf(
-                VarselType.BESKJED,
-                VarselType.OPPGAVE,
-                VarselType.OPPGAVE,
-                VarselType.INNBOKS,
-                VarselType.INNBOKS,
-                VarselType.INNBOKS
+                VarselType.beskjed,
+                VarselType.oppgave,
+                VarselType.oppgave,
+                VarselType.innboks,
+                VarselType.innboks,
+                VarselType.innboks
             )
 
-            val beskjed = varsler.first { it.type == VarselType.BESKJED }
-            inaktiveVarsler.first { it.type == VarselType.BESKJED }.apply {
-                eventId shouldBe beskjed.eventId
-                forstBehandlet shouldBe beskjed.forstBehandlet
-                type shouldBe VarselType.BESKJED
+            val beskjed = varsler.first { it.type == VarselType.beskjed }
+            inaktiveVarsler.first { it.type == VarselType.beskjed }.apply {
+                varselId shouldBe beskjed.varselId
+                eventId shouldBe beskjed.varselId
+                tidspunkt shouldBe beskjed.opprettet
+                forstBehandlet shouldBe beskjed.opprettet
+                type shouldBe VarselType.beskjed
                 isMasked shouldBe false
-                tekst shouldBe beskjed.tekst
+                tekst shouldBe beskjed.innhold?.tekst
             }
 
         }
@@ -129,12 +134,12 @@ class VarselRoutesTest {
     @Test
     fun `Henter alle aktive varsler`() {
         val varsler = listOf(
-            VarselTestData.varsel(type = VarselType.BESKJED),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
         )
 
         testApplication {
@@ -159,24 +164,25 @@ class VarselRoutesTest {
             aktiveVarsler.oppgaver.size shouldBe 2
             aktiveVarsler.innbokser.size shouldBe 3
 
-            val beskjed = varsler.first { it.type == VarselType.BESKJED }
+            val beskjed = varsler.first { it.type == VarselType.beskjed }
             aktiveVarsler.beskjeder.first().apply {
-                eventId shouldBe beskjed.eventId
-                forstBehandlet shouldBe beskjed.forstBehandlet
-                isMasked shouldBe beskjed.isMasked
-                tekst shouldBe beskjed.tekst
-                link shouldBe beskjed.link
+                varselId shouldBe beskjed.varselId
+                eventId shouldBe beskjed.varselId
+                tidspunkt shouldBe beskjed.opprettet
+                forstBehandlet shouldBe beskjed.opprettet
+                isMasked shouldBe (beskjed.innhold == null)
+                tekst shouldBe beskjed.innhold?.tekst
+                link shouldBe beskjed.innhold?.link
                 eksternVarslingSendt shouldBe beskjed.eksternVarslingSendt
                 eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
             }
         }
-
     }
 
     @Test
     fun `Henter aktive varsler for nivå 3`() = testApplication {
-        setupEventhandlerService(VarselTestData.varsel(type = VarselType.BESKJED, isMasked = true),
-            VarselTestData.varsel(type = VarselType.OPPGAVE, isMasked = true)
+        setupEventhandlerService(VarselTestData.varsel(type = VarselType.beskjed, isMasked = true),
+            VarselTestData.varsel(type = VarselType.oppgave, isMasked = true)
         )
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
@@ -209,12 +215,12 @@ class VarselRoutesTest {
     @Test
     fun `Henter antall aktive varsler`() {
         val varsler = listOf(
-            VarselTestData.varsel(type = VarselType.BESKJED),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.OPPGAVE),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
-            VarselTestData.varsel(type = VarselType.INNBOKS),
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
         )
         testApplication {
             setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
@@ -245,14 +251,90 @@ class VarselRoutesTest {
         val expeectedEventId = "hhuu33-91sdf-shdkfh"
         var postCount = 0
         externalServices {
-            hosts(aggregatorTestUrl) {
+            hosts(varselAuthorityTestUrl) {
                 install(ContentNegotiation) { json() }
                 routing {
-                    post("beskjed/done") {
+                    post("beskjed/inaktiver") {
                         Json.parseToJsonElement(call.receiveText()).apply {
-                            this.jsonObject["eventId"]?.jsonPrimitive?.content shouldBe expeectedEventId
+                            this.jsonObject["varselId"]?.jsonPrimitive?.content shouldBe expeectedEventId
                         }
-                        call.request.headers["Authorization"] shouldBe "Bearer aggregatortoken"
+                        call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
+                        postCount++
+                        call.respond(HttpStatusCode.OK)
+                    }
+                }
+            }
+        }
+
+        mockVarselApi(
+            varselConsumer = setupVarselConsumer(),
+            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+        )
+        client.post("/tms-varsel-api/beskjed/inaktiver") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            setBody("""{"varselId": "$expeectedEventId"}""")
+        }.status shouldBe HttpStatusCode.OK
+
+        postCount shouldBe 1
+    }
+
+    @Test
+    fun `er bakoverkompatibel med fronted ved henting av varsler`() {
+        val beskjed = VarselTestData.varsel(type = VarselType.beskjed)
+        val oppgave = VarselTestData.varsel(type = VarselType.oppgave, aktiv = false, inaktivert = ZonedDateTime.now())
+
+        testApplication {
+
+            setupEventhandlerService(aktiveVarslerFromEventHandler = listOf(beskjed), inaktiveVarslerFromEventHandler = listOf(oppgave))
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+            )
+
+            val aktiveVarsler: AktiveVarsler = client.get("/tms-varsel-api/aktive").fromJson()
+            aktiveVarsler.beskjeder.size shouldBe 1
+            aktiveVarsler.oppgaver.size shouldBe 0
+            aktiveVarsler.innbokser.size shouldBe 0
+
+            aktiveVarsler.beskjeder.first().apply {
+                eventId shouldBe beskjed.varselId
+                forstBehandlet shouldBe beskjed.opprettet
+                isMasked shouldBe (beskjed.innhold == null)
+                tekst shouldBe beskjed.innhold?.tekst
+                link shouldBe beskjed.innhold?.link
+                eksternVarslingSendt shouldBe beskjed.eksternVarslingSendt
+                eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
+            }
+
+            val inaktiveVarsler: List<InaktivtVarsel> = client.get("/tms-varsel-api/inaktive").fromJson()
+            inaktiveVarsler.size shouldBe 1
+
+            inaktiveVarsler.first().apply {
+                type shouldBe VarselType.oppgave
+                eventId shouldBe oppgave.varselId
+                forstBehandlet shouldBe oppgave.opprettet
+                isMasked shouldBe (oppgave.innhold == null)
+                tekst shouldBe oppgave.innhold?.tekst
+                eksternVarslingSendt shouldBe oppgave.eksternVarslingSendt
+                eksternVarslingKanaler shouldBe oppgave.eksternVarslingKanaler
+            }
+        }
+    }
+
+
+    @Test
+    fun `er bakoverkompatibel med frontend ved inaktivering av beskjed`() = testApplication {
+        val expeectedEventId = "hhuu33-91sdf-shdkfh"
+        var postCount = 0
+        externalServices {
+            hosts(varselAuthorityTestUrl) {
+                install(ContentNegotiation) { json() }
+                routing {
+                    post("beskjed/inaktiver") {
+                        Json.parseToJsonElement(call.receiveText()).apply {
+                            this.jsonObject["varselId"]?.jsonPrimitive?.content shouldBe expeectedEventId
+                        }
+                        call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
                         postCount++
                         call.respond(HttpStatusCode.OK)
                     }
@@ -271,6 +353,10 @@ class VarselRoutesTest {
 
         postCount shouldBe 1
     }
+}
+
+private suspend inline fun <reified T> HttpResponse.fromJson(): T {
+    return bodyAsText().let(Json::decodeFromString)
 }
 
 private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): Application.() -> Unit = {
