@@ -19,6 +19,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import nav.no.tms.common.metrics.ApiResponseMetrics
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.idporten.sidecar.LoginLevel
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
@@ -54,6 +55,7 @@ fun Application.varselApi(
 
     install(DefaultHeaders)
     install(RouteByAuthenticationMethod)
+    install(ApiResponseMetrics)
 
     authInstaller()
 
