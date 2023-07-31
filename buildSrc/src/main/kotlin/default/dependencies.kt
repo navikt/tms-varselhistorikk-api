@@ -208,7 +208,7 @@ interface KtorDefaults: DependencyGroup {
 }
 
 object Ktor2Defaults {
-    val version get() = "2.3.0"
+    val version get() = "2.3.2"
     val groupId get() = "io.ktor"
 
     interface ServerDefaults: DependencyGroup {
