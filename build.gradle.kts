@@ -43,7 +43,7 @@ dependencies {
     implementation(Micrometer.registryPrometheus)
     implementation(Prometheus.logback)
     implementation("io.ktor:ktor-client-encoding:2.3.0")
-    implementation("com.github.navikt:tms-common-lib:1.0.1")
+    implementation("com.github.navikt:tms-common-lib:dc09781281")
 
     testImplementation(kotlin("test"))
     testImplementation(Kotest.assertionsCore)
