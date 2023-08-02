@@ -2,8 +2,7 @@ package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import io.ktor.client.call.*
-import io.ktor.client.plugins.compression.*
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -60,6 +59,10 @@ class VarselRoutesTest {
                 header(TokenXHeader.Authorization, "tokenxtoken")
             }
             response.status shouldBe HttpStatusCode.OK
+            client.get("tms-varsel-api/metrics").also {
+                it.status shouldBe HttpStatusCode.OK
+                it.bodyAsText() shouldContain ("tms_api_call")
+            }
 
         }
 
