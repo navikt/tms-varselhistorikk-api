@@ -6,7 +6,6 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
-import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -19,8 +18,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
-import nav.no.tms.common.metrics.ApiResponseMetrics
-import nav.no.tms.common.metrics.installApiMicrometer
+import nav.no.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.authentication.installer.installAuthenticators
 import no.nav.tms.token.support.idporten.sidecar.LoginLevel
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
@@ -77,10 +75,10 @@ fun Application.varselApi(
         json(jsonConfig())
     }
 
-    install(MicrometerMetrics) {
+    installTmsMicrometerMetrics {
+        installMicrometerPlugin = true
         registry = collectorRegistry
     }
-    installApiMicrometer(collectorRegistry, withRoute = false)
 
     routing {
         route(ROOT_PATH) {
