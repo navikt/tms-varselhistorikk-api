@@ -35,7 +35,6 @@ fun Application.varselApi(
         }
     }
 ) {
-    val collectorRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val securelog = KotlinLogging.logger("secureLog")
 
     install(DefaultHeaders)
@@ -63,11 +62,10 @@ fun Application.varselApi(
     installTmsMicrometerMetrics {
         setupMetricsRoute = true
         installMicrometerPlugin = true
-        registry = collectorRegistry
     }
 
     routing {
-        meta(collectorRegistry)
+        meta()
         authenticate {
             varsel(varselConsumer)
             varselbjelle(varselConsumer)
