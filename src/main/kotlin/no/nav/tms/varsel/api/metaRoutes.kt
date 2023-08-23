@@ -17,8 +17,4 @@ fun Route.meta(collectorRegistry: PrometheusMeterRegistry) {
     get("/internal/isReady") {
         call.respondText(text = "READY", contentType = ContentType.Text.Plain)
     }
-
-    get("/metrics") {
-        call.respond(collectorRegistry.scrape())
-    }
 }

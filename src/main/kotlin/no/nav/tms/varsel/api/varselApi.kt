@@ -4,9 +4,7 @@ import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
@@ -17,35 +15,23 @@ import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import nav.no.tms.common.metrics.installTmsMicrometerMetrics
-import no.nav.tms.token.support.authentication.installer.installAuthenticators
-import no.nav.tms.token.support.idporten.sidecar.LoginLevel
-import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
-import no.nav.tms.token.support.tokendings.exchange.TokenXHeader
-import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
+import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
+import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
-
-private const val ROOT_PATH = "/tms-varsel-api"
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
     httpClient: HttpClient,
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
-        installAuthenticators {
-            installIdPortenAuth {
-                setAsDefault = true
-                rootPath = ROOT_PATH
-                inheritProjectRootPath = false
-                loginLevel = LoginLevel.LEVEL_3
-            }
-            installTokenXAuth {
-                setAsDefault = false
-            }
+        installIdPortenAuth {
+            setAsDefault = true
+            inheritProjectRootPath = false
+            levelOfAssurance = LevelOfAssurance.SUBSTANTIAL
         }
     }
 ) {
@@ -53,7 +39,6 @@ fun Application.varselApi(
     val securelog = KotlinLogging.logger("secureLog")
 
     install(DefaultHeaders)
-    install(RouteByAuthenticationMethod)
 
     authInstaller()
 
@@ -76,25 +61,18 @@ fun Application.varselApi(
     }
 
     installTmsMicrometerMetrics {
+        setupMetricsRoute = true
         installMicrometerPlugin = true
         registry = collectorRegistry
     }
 
     routing {
-        route(ROOT_PATH) {
-            meta(collectorRegistry)
-            authenticate {
-                route("/idporten") {
-                    varsel(varselConsumer) { IdportenUserFactory.createIdportenUser(call).tokenString }
-                    varselbjelle(varselConsumer)
-                }
-            }
-            authenticate(TokenXAuthenticator.name) {
-                route("/tokenx") {
-                    varsel(varselConsumer) { TokenXUserFactory.createTokenXUser(call).tokenString }
-                }
-            }
+        meta(collectorRegistry)
+        authenticate {
+            varsel(varselConsumer)
+            varselbjelle(varselConsumer)
         }
+
     }
 
     configureShutdownHook(httpClient)
@@ -112,22 +90,3 @@ fun jsonConfig(): Json {
         this.encodeDefaults = true
     }
 }
-
-val RouteByAuthenticationMethod = createApplicationPlugin(name = "RouteByAuthenticationMethod") {
-    on(CallSetup) { call ->
-        val metaroutes = listOf("/metrics", "/internal/isReady", "/internal/isAlive")
-        val originalUri = call.request.uri
-        if (call.request.headers.contains(TokenXHeader.Authorization)) {
-            call.mutableOriginConnectionPoint.uri = originalUri.withAuthenication("tokenx")
-        } else {
-            if (!metaroutes.any { originalUri.contains(it) })
-                call.mutableOriginConnectionPoint.uri = originalUri.withAuthenication("idporten")
-        }
-    }
-}
-
-private fun String.withAuthenication(autheticationRoute: String) =
-    split("tms-varsel-api")
-        .let {
-            "/tms-varsel-api/$autheticationRoute${it.last()}"
-        }
