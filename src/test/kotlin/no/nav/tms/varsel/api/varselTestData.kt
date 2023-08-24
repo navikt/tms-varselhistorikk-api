@@ -16,8 +16,8 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.TestApplicationBuilder
 import io.mockk.coEvery
 import io.mockk.mockk
-import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
-import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
+import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
+import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
@@ -118,20 +118,14 @@ fun ApplicationTestBuilder.setupVarselConsumer(
     )
 
 fun installIdportenAuthenticatedMock(
-    securityLevel: SecurityLevel,
+    levelOfAssurance: LevelOfAssurance,
     authenticated: Boolean = true
 ): Application.() -> Unit = {
-    installMockedAuthenticators {
-        installTokenXAuthMock {
-            alwaysAuthenticated = false
-            setAsDefault = false
-        }
-        installIdPortenAuthMock {
-            alwaysAuthenticated = authenticated
-            setAsDefault = true
-            staticSecurityLevel = securityLevel
-            staticUserPid = "12345"
-        }
+    installIdPortenAuthMock {
+        alwaysAuthenticated = authenticated
+        setAsDefault = true
+        staticLevelOfAssurance = levelOfAssurance
+        staticUserPid = "12345"
     }
 }
 

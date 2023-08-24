@@ -5,12 +5,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import io.mockk.coEvery
-import io.mockk.mockk
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel
-import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
 import no.nav.tms.varsel.api.varsel.VarselType
 import no.nav.tms.varsel.api.varsel.VarselbjelleVarsler
 import org.junit.jupiter.api.Test
@@ -31,10 +27,10 @@ class VarselbjelleRoutesTest {
             setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(SecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
 
-            client.get("/tms-varsel-api/varselbjelle/varsler").apply {
+            client.get("/varselbjelle/varsler").apply {
                 status shouldBe HttpStatusCode.OK
                 val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
                 varselbjellevarsler.beskjeder.size shouldBe 2

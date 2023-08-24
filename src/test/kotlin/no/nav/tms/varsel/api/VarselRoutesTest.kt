@@ -2,7 +2,6 @@ package no.nav.tms.varsel.api
 
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -12,7 +11,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -25,10 +23,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import no.nav.tms.token.support.authentication.installer.mock.installMockedAuthenticators
-import no.nav.tms.token.support.tokendings.exchange.TokenXHeader
-import no.nav.tms.token.support.idporten.sidecar.mock.SecurityLevel as IdportenSecurityLevel
-import no.nav.tms.token.support.tokenx.validation.mock.SecurityLevel as TokenXSecurityLevel
+import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
 import no.nav.tms.varsel.api.varsel.AktiveVarsler
 import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
@@ -39,37 +34,7 @@ import java.time.ZonedDateTime
 class VarselRoutesTest {
 
     @Test
-    fun `Henter alle inaktiverte varsler med tokenX autentisering`() {
-        val varsler = listOf(
-            VarselTestData.varsel(type = VarselType.beskjed),
-            VarselTestData.varsel(type = VarselType.oppgave),
-            VarselTestData.varsel(type = VarselType.oppgave),
-            VarselTestData.varsel(type = VarselType.innboks)
-        )
-        //tokenx
-        testApplication {
-            setupEventhandlerService(inaktiveVarslerFromEventHandler = varsler)
-            mockVarselApi(
-                varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installTokenXAuthenticatedMock(TokenXSecurityLevel.LEVEL_4)
-            )
-
-            client.get("/tms-varsel-api/inaktive").status shouldBe HttpStatusCode.Unauthorized
-            val response = client.get("/inaktive") {
-                header(TokenXHeader.Authorization, "tokenxtoken")
-            }
-            response.status shouldBe HttpStatusCode.OK
-            client.get("tms-varsel-api/metrics").also {
-                it.status shouldBe HttpStatusCode.OK
-                it.bodyAsText() shouldContain ("tms_api_call")
-            }
-
-        }
-
-    }
-
-    @Test
-    fun `Henter inaktiverte varsel med idporten autentisering`() {
+    fun `Henter inaktiverte varsler`() {
 
         val varsler = listOf(
             VarselTestData.varsel(type = VarselType.beskjed),
@@ -84,12 +49,8 @@ class VarselRoutesTest {
             setupEventhandlerService(inaktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
-
-            client.get("/tms-varsel-api/inaktive") {
-                header(TokenXHeader.Authorization, "tokenxtoken")
-            }.status shouldBe HttpStatusCode.Unauthorized
 
             val response = client.get("/inaktive")
             response.status shouldBe HttpStatusCode.OK
@@ -126,11 +87,11 @@ class VarselRoutesTest {
             setupEventhandlerService(inaktiveVarslerFromEventHandler = listOf())
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4, false)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4, false)
             )
 
-            client.get("/tms-varsel-api/internal/isAlive").status shouldBe HttpStatusCode.OK
-            client.get("/tms-varsel-api/internal/isReady").status shouldBe HttpStatusCode.OK
+            client.get("/internal/isAlive").status shouldBe HttpStatusCode.OK
+            client.get("/internal/isReady").status shouldBe HttpStatusCode.OK
         }
 
 
@@ -149,17 +110,10 @@ class VarselRoutesTest {
             setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
 
-            client.get("/tms-varsel-api/aktive") {
-                header(
-                    TokenXHeader.Authorization,
-                    "tokenxtoken"
-                )
-            }.status shouldBe HttpStatusCode.Unauthorized
-
-            val response = client.get("/tms-varsel-api/aktive")
+            val response = client.get("/aktive")
             response.status shouldBe HttpStatusCode.OK
 
             val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
@@ -189,17 +143,10 @@ class VarselRoutesTest {
         )
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_3)
+            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_3)
         )
 
-        client.get("/tms-varsel-api/aktive") {
-            header(
-                TokenXHeader.Authorization,
-                "tokenxtoken"
-            )
-        }.status shouldBe HttpStatusCode.Unauthorized
-
-        val response = client.get("/tms-varsel-api/aktive")
+        val response = client.get("/aktive")
         response.status shouldBe HttpStatusCode.OK
 
         val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
@@ -229,10 +176,10 @@ class VarselRoutesTest {
             setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
 
-            val response = client.get("/tms-varsel-api/antall/aktive")
+            val response = client.get("/antall/aktive")
 
             response.status shouldBe HttpStatusCode.OK
 
@@ -271,9 +218,9 @@ class VarselRoutesTest {
 
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
-        client.post("/tms-varsel-api/beskjed/inaktiver") {
+        client.post("/beskjed/inaktiver") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody("""{"varselId": "$expeectedEventId"}""")
         }.status shouldBe HttpStatusCode.OK
@@ -291,10 +238,10 @@ class VarselRoutesTest {
             setupEventhandlerService(aktiveVarslerFromEventHandler = listOf(beskjed), inaktiveVarslerFromEventHandler = listOf(oppgave))
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
 
-            val aktiveVarsler: AktiveVarsler = client.get("/tms-varsel-api/aktive").fromJson()
+            val aktiveVarsler: AktiveVarsler = client.get("/aktive").fromJson()
             aktiveVarsler.beskjeder.size shouldBe 1
             aktiveVarsler.oppgaver.size shouldBe 0
             aktiveVarsler.innbokser.size shouldBe 0
@@ -309,7 +256,7 @@ class VarselRoutesTest {
                 eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
             }
 
-            val inaktiveVarsler: List<InaktivtVarsel> = client.get("/tms-varsel-api/inaktive").fromJson()
+            val inaktiveVarsler: List<InaktivtVarsel> = client.get("/inaktive").fromJson()
             inaktiveVarsler.size shouldBe 1
 
             inaktiveVarsler.first().apply {
@@ -347,9 +294,9 @@ class VarselRoutesTest {
 
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(IdportenSecurityLevel.LEVEL_4)
+            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
-        client.post("/tms-varsel-api/beskjed/inaktiver") {
+        client.post("/beskjed/inaktiver") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody("""{"eventId": "$expeectedEventId"}""")
         }.status shouldBe HttpStatusCode.OK
@@ -361,19 +308,3 @@ class VarselRoutesTest {
 private suspend inline fun <reified T> HttpResponse.fromJson(): T {
     return bodyAsText().let(Json::decodeFromString)
 }
-
-private fun installTokenXAuthenticatedMock(securityLevel: TokenXSecurityLevel): Application.() -> Unit = {
-    installMockedAuthenticators {
-        installTokenXAuthMock {
-            alwaysAuthenticated = true
-            setAsDefault = false
-            staticSecurityLevel = securityLevel
-            staticUserPid = "12345"
-        }
-        installIdPortenAuthMock {
-            alwaysAuthenticated = false
-            setAsDefault = true
-        }
-    }
-}
-

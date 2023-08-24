@@ -10,26 +10,26 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
+import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
 
 
 fun Route.varsel(
-    varselConsumer: VarselConsumer,
-    tokenResolver: PipelineContext<Unit, ApplicationCall>.() -> String
+    varselConsumer: VarselConsumer
 ) {
     get("inaktive") {
-        val inaktiveVarsler = varselConsumer.getInaktiveVarsler(tokenResolver())
+        val inaktiveVarsler = varselConsumer.getInaktiveVarsler(call.userToken)
 
         call.respond(HttpStatusCode.OK, inaktiveVarsler)
     }
 
     get("aktive") {
-        val aktiveVarsler = varselConsumer.getAktiveVarsler(tokenResolver())
+        val aktiveVarsler = varselConsumer.getAktiveVarsler(call.userToken)
 
         call.respond(HttpStatusCode.OK, aktiveVarsler)
     }
 
     get("antall/aktive") {
-        val antallAktive = varselConsumer.getAktiveVarsler(tokenResolver()).let {
+        val antallAktive = varselConsumer.getAktiveVarsler(call.userToken).let {
             AntallVarsler(
                 beskjeder = it.beskjeder.size,
                 oppgaver = it.oppgaver.size,
@@ -41,10 +41,12 @@ fun Route.varsel(
     }
 
     post("beskjed/inaktiver") {
-        varselConsumer.postInaktiver(varselId = call.varselId(), userToken = tokenResolver())
+        varselConsumer.postInaktiver(varselId = call.varselId(), userToken = call.userToken)
         call.respond(HttpStatusCode.OK)
     }
 }
+
+private val ApplicationCall.userToken get() = IdportenUserFactory.createIdportenUser(this).tokenString
 
 @Serializable
 data class AntallVarsler(val beskjeder: Int, val oppgaver: Int, val innbokser: Int)
