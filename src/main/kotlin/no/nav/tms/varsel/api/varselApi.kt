@@ -12,13 +12,11 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.prometheus.PrometheusConfig
-import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import io.github.oshai.kotlinlogging.KotlinLogging
 import nav.no.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
-import no.nav.tms.token.support.idporten.sidecar.installIdPortenAuth
+import no.nav.tms.token.support.idporten.sidecar.idPorten
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
@@ -28,10 +26,11 @@ fun Application.varselApi(
     httpClient: HttpClient,
     varselConsumer: VarselConsumer,
     authInstaller: Application.() -> Unit = {
-        installIdPortenAuth {
-            setAsDefault = true
-            inheritProjectRootPath = false
-            levelOfAssurance = LevelOfAssurance.SUBSTANTIAL
+        authentication {
+            idPorten {
+                setAsDefault = true
+                levelOfAssurance = LevelOfAssurance.SUBSTANTIAL
+            }
         }
     }
 ) {
@@ -65,7 +64,7 @@ fun Application.varselApi(
     }
 
     routing {
-        meta()
+        metaRoutes()
         authenticate {
             varsel(varselConsumer)
             varselbjelle(varselConsumer)
