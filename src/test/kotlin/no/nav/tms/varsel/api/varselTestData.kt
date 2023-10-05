@@ -8,6 +8,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
@@ -17,7 +18,7 @@ import io.ktor.server.testing.TestApplicationBuilder
 import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
-import no.nav.tms.token.support.idporten.sidecar.mock.installIdPortenAuthMock
+import no.nav.tms.token.support.idporten.sidecar.mock.idPortenMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
@@ -121,11 +122,13 @@ fun installIdportenAuthenticatedMock(
     levelOfAssurance: LevelOfAssurance,
     authenticated: Boolean = true
 ): Application.() -> Unit = {
-    installIdPortenAuthMock {
-        alwaysAuthenticated = authenticated
-        setAsDefault = true
-        staticLevelOfAssurance = levelOfAssurance
-        staticUserPid = "12345"
+    authentication {
+        idPortenMock {
+            alwaysAuthenticated = authenticated
+            setAsDefault = true
+            staticLevelOfAssurance = levelOfAssurance
+            staticUserPid = "12345"
+        }
     }
 }
 
