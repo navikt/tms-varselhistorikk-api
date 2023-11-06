@@ -37,7 +37,7 @@ spec:
         - application: tms-min-side-proxy
         - application: decorator-next
           namespace: personbruker
-          cluser: dev-gcp
+          cluster: dev-gcp
     outbound:
       rules:
         - application: tms-varsel-authority
