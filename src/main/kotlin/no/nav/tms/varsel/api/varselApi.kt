@@ -24,7 +24,6 @@ import no.nav.tms.token.support.idporten.sidecar.idPorten
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
-import java.text.DateFormat
 
 fun Application.varselApi(
     corsAllowedOrigins: String,

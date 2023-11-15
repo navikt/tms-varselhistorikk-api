@@ -40,13 +40,6 @@ import java.time.ZonedDateTime
 
 class VarselRoutesTest {
 
-    private val objectMapper = jacksonMapperBuilder()
-        .addModule(JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-        .build()
-        .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-
     @Test
     fun `Henter inaktiverte varsler`() = varselRoutesTest { client ->
         val varsler = listOf(
