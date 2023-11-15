@@ -1,8 +1,12 @@
 package no.nav.tms.varsel.api
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.client.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -12,14 +16,15 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.json.Json
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.serialization.jackson.*
 import nav.no.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.idPorten
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
+import java.text.DateFormat
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
@@ -42,8 +47,7 @@ fun Application.varselApi(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            securelog.warn { "Kall til ${call.request.uri} feilet: ${cause.message}" }
-            securelog.warn { cause.stackTrace }
+            securelog.warn(cause) { "Kall til ${call.request.uri} feilet: ${cause.message}" }
             call.respond(HttpStatusCode.InternalServerError)
         }
     }
@@ -55,7 +59,7 @@ fun Application.varselApi(
     }
 
     install(ContentNegotiation) {
-        json(jsonConfig())
+        jackson { jsonConfig() }
     }
 
     installTmsMicrometerMetrics {
@@ -81,9 +85,10 @@ private fun Application.configureShutdownHook(httpClient: HttpClient) {
     }
 }
 
-fun jsonConfig(): Json {
-    return Json {
-        this.ignoreUnknownKeys = true
-        this.encodeDefaults = true
-    }
+fun ObjectMapper.jsonConfig(): ObjectMapper {
+    registerKotlinModule()
+    registerModule(JavaTimeModule())
+    disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    return this
 }

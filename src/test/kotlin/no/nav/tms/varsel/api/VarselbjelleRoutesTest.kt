@@ -24,7 +24,7 @@ class VarselbjelleRoutesTest {
             VarselTestData.varsel(type = VarselType.innboks)
         )
         testApplication {
-            setupEventhandlerService(aktiveVarslerFromEventHandler = varsler)
+            setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
                 authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
