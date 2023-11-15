@@ -21,9 +21,12 @@ repositories {
 
 dependencies {
     implementation(DittNAVCommonLib.utils)
+    implementation(JacksonDatatype.datatypeJsr310)
+    implementation(JacksonDatatype.moduleKotlin)
     implementation(Ktor.Client.core)
     implementation(Ktor.Client.apache)
     implementation(Ktor.Client.contentNegotiation)
+    implementation(Ktor.Serialization.jackson)
     implementation(Ktor.Server.core)
     implementation(Ktor.Server.netty)
     implementation(Ktor.Server.auth)
@@ -36,7 +39,6 @@ dependencies {
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(KotlinLogging.logging)
     implementation(Logstash.logbackEncoder)
-    implementation(Ktor.Serialization.kotlinX)
     implementation(Micrometer.registryPrometheus)
     implementation(Prometheus.logback)
     implementation(KtorClientEncoding.clientEncoding)

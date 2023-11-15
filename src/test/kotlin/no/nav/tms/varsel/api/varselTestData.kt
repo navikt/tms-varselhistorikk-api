@@ -1,10 +1,13 @@
 package no.nav.tms.varsel.api
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation.*
 import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.jackson.*
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
 import io.ktor.server.application.install
@@ -20,10 +23,9 @@ import io.mockk.mockk
 import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.mock.idPortenMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.varsel.api.varsel.Varsel
 import no.nav.tms.varsel.api.varsel.VarselConsumer
-import no.nav.tms.varsel.api.varsel.VarselInnhold
 import no.nav.tms.varsel.api.varsel.VarselType
+import java.text.DateFormat
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.*
@@ -37,6 +39,7 @@ object VarselTestData {
         opprettet: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC),
         aktivFremTil: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC).plusDays(7),
         varselId: String = UUID.randomUUID().toString(),
+        spraakkode: String = "nb",
         tekst: String = "tekst",
         link: String = "http://link.no",
         isMasked: Boolean = false,
@@ -44,18 +47,36 @@ object VarselTestData {
         inaktivert: ZonedDateTime? = null,
         eksternVarsling: Boolean = false,
         eksernVarslingKanaler: List<String> = emptyList()
-    ) = Varsel(
+    ) = TestVarsel(
         type = type,
         varselId = varselId,
         opprettet = opprettet,
         aktivFremTil = aktivFremTil,
-        innhold = if (isMasked) null else VarselInnhold(tekst, link),
+        innhold = if (isMasked) null else TestInnhold(spraakkode, tekst, link),
         aktiv = aktiv,
         inaktivert = inaktivert,
         eksternVarslingSendt = eksternVarsling,
         eksternVarslingKanaler = eksernVarslingKanaler
     )
 }
+
+data class TestVarsel(
+    val type: VarselType,
+    val varselId: String,
+    val aktiv: Boolean,
+    val innhold: TestInnhold?,
+    val eksternVarslingSendt: Boolean,
+    val eksternVarslingKanaler: List<String>,
+    val opprettet: ZonedDateTime,
+    val aktivFremTil: ZonedDateTime?,
+    val inaktivert: ZonedDateTime?,
+)
+
+data class TestInnhold(
+    val spraakkode: String,
+    val tekst: String,
+    val link: String?
+)
 
 fun TestApplicationBuilder.mockVarselApi(
     httpClient: HttpClient = HttpClientBuilder.build(),
@@ -74,17 +95,20 @@ fun TestApplicationBuilder.mockVarselApi(
 }
 
 
-fun ApplicationTestBuilder.setupEventhandlerService(vararg varsler: Varsel) = setupEventhandlerService(
+fun ApplicationTestBuilder.setupVarselAuthority(vararg varsler: TestVarsel) = setupVarselAuthority(
     aktiveVarslerFromEventHandler = varsler.toList()
 )
 
-fun ApplicationTestBuilder.setupEventhandlerService(
-    aktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
-    inaktiveVarslerFromEventHandler: List<Varsel> = emptyList(),
+fun ApplicationTestBuilder.setupVarselAuthority(
+    aktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
+    inaktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
 ) {
     externalServices {
         hosts(varselAuthorityTestUrl) {
-            install(ContentNegotiation) { json() }
+            install(ContentNegotiation) {
+                jackson { jsonConfig() }
+            }
+
             routing {
                 get("/varsel/sammendrag/aktive") {
                     call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
@@ -107,7 +131,7 @@ fun ApplicationTestBuilder.setupVarselConsumer(
 ) = VarselConsumer(
     client = createClient {
         install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
-            json(jsonConfig())
+            jackson { jsonConfig() }
         }
         install(HttpTimeout)
 

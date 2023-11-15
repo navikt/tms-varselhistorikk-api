@@ -11,7 +11,7 @@ import io.ktor.client.request.request
 import io.ktor.client.request.url
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.jackson.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import no.nav.personbruker.dittnav.common.util.config.StringEnvVar.getEnvVar
@@ -26,7 +26,7 @@ object HttpClientBuilder {
     fun build(httpClientEngine: HttpClientEngine = Apache.create()): HttpClient {
         return HttpClient(httpClientEngine) {
             install(ContentNegotiation) {
-                json(jsonConfig())
+                jackson { jsonConfig() }
             }
             install(HttpTimeout)
         }
