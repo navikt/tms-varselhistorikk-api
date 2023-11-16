@@ -36,6 +36,7 @@ dependencies {
     implementation(Ktor.Server.defaultHeaders)
     implementation(Ktor.Server.cors)
     implementation(TmsKtorTokenSupport.idportenSidecar)
+    implementation(TmsKtorTokenSupport.tokenXValidation)
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(KotlinLogging.logging)
     implementation(Logstash.logbackEncoder)
@@ -49,6 +50,7 @@ dependencies {
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Ktor.Test.serverTestHost)
     implementation(TmsKtorTokenSupport.idportenSidecarMock)
+    implementation(TmsKtorTokenSupport.tokenXValidationMock)
     testImplementation(Mockk.mockk)
 }
 

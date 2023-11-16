@@ -1,11 +1,8 @@
 package no.nav.tms.varsel.api
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.Application
@@ -23,9 +20,9 @@ import io.mockk.mockk
 import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.mock.idPortenMock
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.token.support.tokenx.validation.mock.tokenXMock
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.VarselType
-import java.text.DateFormat
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.*
@@ -142,7 +139,7 @@ fun ApplicationTestBuilder.setupVarselConsumer(
 
     )
 
-fun installIdportenAuthenticatedMock(
+fun installAuthenticatedMock(
     levelOfAssurance: LevelOfAssurance,
     authenticated: Boolean = true
 ): Application.() -> Unit = {
@@ -153,6 +150,18 @@ fun installIdportenAuthenticatedMock(
             staticLevelOfAssurance = levelOfAssurance
             staticUserPid = "12345"
         }
+        tokenXMock {
+            setAsDefault = false
+            alwaysAuthenticated = authenticated
+            staticLevelOfAssurance = levelOfAssurance.toTokenxLoa()
+            staticUserPid = "12345"
+        }
     }
 }
 
+private fun LevelOfAssurance.toTokenxLoa() = when(this) {
+    LevelOfAssurance.SUBSTANTIAL -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.SUBSTANTIAL
+    LevelOfAssurance.LEVEL_3 -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.SUBSTANTIAL
+    LevelOfAssurance.HIGH -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.HIGH
+    LevelOfAssurance.LEVEL_4 -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.HIGH
+}

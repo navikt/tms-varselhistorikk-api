@@ -27,10 +27,46 @@ class VarselbjelleRoutesTest {
             setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
             )
 
             client.get("/varselbjelle/varsler").apply {
+                status shouldBe HttpStatusCode.OK
+                val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
+                varselbjellevarsler.beskjeder.size shouldBe 2
+                varselbjellevarsler.oppgaver.size shouldBe 3
+                val beskjed = varselbjellevarsler.beskjeder.first { it.eventId == expectedBeskjed.varselId }
+                beskjed.varselId shouldBe expectedBeskjed.varselId
+                beskjed.eventId shouldBe expectedBeskjed.varselId
+                beskjed.isMasked shouldBe (expectedBeskjed.innhold == null)
+                beskjed.link shouldBe expectedBeskjed.innhold?.link
+                beskjed.tekst shouldBe expectedBeskjed.innhold?.tekst
+                beskjed.eksternVarslingKanaler shouldBe expectedBeskjed.eksternVarslingKanaler
+                beskjed.tidspunkt shouldBe expectedBeskjed.opprettet
+                beskjed.eksternVarslingSendt shouldBe expectedBeskjed.eksternVarslingSendt
+                beskjed.type shouldBe "beskjed"
+            }
+        }
+    }
+
+    @Test
+    fun `Varsel har riktige felter fra bjellevarsler`() = testApplication {
+        val expectedBeskjed = VarselTestData.varsel(type = VarselType.beskjed)
+        val varsler = listOf(
+            expectedBeskjed,
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks)
+        )
+        testApplication {
+            setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            )
+
+            client.get("/bjellevarsler").apply {
                 status shouldBe HttpStatusCode.OK
                 val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
                 varselbjellevarsler.beskjeder.size shouldBe 2

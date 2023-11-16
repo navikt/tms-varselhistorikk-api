@@ -1,10 +1,5 @@
 package no.nav.tms.varsel.api
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonMapperBuilder
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -35,7 +30,6 @@ import no.nav.tms.varsel.api.varsel.AntallVarsler
 import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
-import java.text.DateFormat
 import java.time.ZonedDateTime
 
 class VarselRoutesTest {
@@ -54,7 +48,7 @@ class VarselRoutesTest {
         setupVarselAuthority(inaktiveVarslerFromEventHandler = varsler)
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
 
         val response = client.get("/inaktive")
@@ -98,7 +92,7 @@ class VarselRoutesTest {
         setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
 
         val response = client.get("/aktive")
@@ -130,7 +124,7 @@ class VarselRoutesTest {
         )
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_3)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_3)
         )
 
         val response = client.get("/aktive")
@@ -164,7 +158,7 @@ class VarselRoutesTest {
         setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
 
         val response = client.get("/antall/aktive")
@@ -199,7 +193,7 @@ class VarselRoutesTest {
 
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
         client.post("/beskjed/inaktiver") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -218,7 +212,7 @@ class VarselRoutesTest {
         setupVarselAuthority(aktiveVarslerFromEventHandler = listOf(beskjed), inaktiveVarslerFromEventHandler = listOf(oppgave))
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
 
         val aktiveVarsler: AktiveVarsler = client.get("/aktive").body()
@@ -273,7 +267,7 @@ class VarselRoutesTest {
 
         mockVarselApi(
             varselConsumer = setupVarselConsumer(),
-            authMockInstaller = installIdportenAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
         client.post("/beskjed/inaktiver") {
             header(HttpHeaders.ContentType, ContentType.Application.Json)
