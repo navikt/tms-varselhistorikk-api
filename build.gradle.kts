@@ -16,11 +16,16 @@ kotlin {
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
+    maven("https://maven.pkg.github.com/navikt/*") {
+        credentials {
+            username = System.getenv("GITHUB_ACTOR")?: "x-access-token"
+            password = System.getenv("GITHUB_TOKEN")?: project.findProperty("githubPassword") as String
+        }
+    }
+    mavenLocal()
 }
 
 dependencies {
-    implementation(DittNAVCommonLib.utils)
     implementation(JacksonDatatype.datatypeJsr310)
     implementation(JacksonDatatype.moduleKotlin)
     implementation(Ktor.Client.core)
@@ -42,7 +47,8 @@ dependencies {
     implementation(Micrometer.registryPrometheus)
     implementation(Prometheus.logback)
     implementation(KtorClientEncoding.clientEncoding)
-    implementation(TmsCommonLib.commonLib)
+    implementation(TmsCommonLib.metrics)
+    implementation(TmsCommonLib.utils)
 
     testImplementation(kotlin("test"))
     testImplementation(Kotest.assertionsCore)
