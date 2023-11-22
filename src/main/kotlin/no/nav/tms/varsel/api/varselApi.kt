@@ -21,7 +21,10 @@ import io.ktor.serialization.jackson.*
 import nav.no.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.idPorten
+import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
+import no.nav.tms.token.support.tokenx.validation.tokenX
 import no.nav.tms.varsel.api.varsel.VarselConsumer
+import no.nav.tms.varsel.api.varsel.bjellevarsler
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
 
@@ -34,6 +37,10 @@ fun Application.varselApi(
             idPorten {
                 setAsDefault = true
                 levelOfAssurance = LevelOfAssurance.SUBSTANTIAL
+            }
+            tokenX {
+                setAsDefault = false
+                levelOfAssurance = TokenXLoa.SUBSTANTIAL
             }
         }
     }
@@ -72,11 +79,16 @@ fun Application.varselApi(
             varsel(varselConsumer)
             varselbjelle(varselConsumer)
         }
+        authenticate(TokenXAuthenticator.name) {
+            bjellevarsler(varselConsumer)
+        }
 
     }
 
     configureShutdownHook(httpClient)
 }
+
+typealias TokenXLoa = no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 
 private fun Application.configureShutdownHook(httpClient: HttpClient) {
     environment.monitor.subscribe(ApplicationStopping) {
