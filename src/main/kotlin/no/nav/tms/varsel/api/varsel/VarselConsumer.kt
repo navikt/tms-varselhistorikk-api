@@ -3,16 +3,13 @@
 package no.nav.tms.varsel.api.varsel
 
 import io.ktor.client.HttpClient
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
 import no.nav.tms.varsel.api.ZonedDateTimeSerializer
-import no.nav.tms.varsel.api.get
 import java.time.ZonedDateTime
 
 class VarselConsumer(
@@ -21,18 +18,18 @@ class VarselConsumer(
     private val varselAuthorityClientId: String,
     private val tokendingsService: TokendingsService
 ) {
-    suspend fun getAktiveVarsler(userToken: String): AktiveVarsler {
-        return getVarsler(userToken, "/varsel/sammendrag/aktive")
+    suspend fun getAktiveVarsler(userToken: String, preferertSpraak: String?): AktiveVarsler {
+        return getVarsler(userToken, "/varsel/sammendrag/aktive", preferertSpraak = preferertSpraak)
             .let (AktiveVarsler::fromVarsler)
     }
 
-    suspend fun getInaktiveVarsler(userToken: String): List<InaktivtVarsel> {
-        return getVarsler( userToken,"/varsel/sammendrag/inaktive")
+    suspend fun getInaktiveVarsler(userToken: String, preferertSpraak: String?): List<InaktivtVarsel> {
+        return getVarsler(userToken,"/varsel/sammendrag/inaktive", preferertSpraak = preferertSpraak)
             .map(InaktivtVarsel::fromVarsel)
     }
 
-    suspend fun getVarselbjelleVarsler(userToken: String): VarselbjelleVarsler {
-        return getVarsler(userToken, "/varsel/sammendrag/aktive")
+    suspend fun getVarselbjelleVarsler(userToken: String, preferertSpraak: String?): VarselbjelleVarsler {
+        return getVarsler(userToken, "/varsel/sammendrag/aktive", preferertSpraak = preferertSpraak)
             .let(VarselbjelleVarsler::fromVarsler)
     }
 
@@ -46,9 +43,16 @@ class VarselConsumer(
         }
     }
 
-    private suspend fun getVarsler(userToken: String, path: String): List<Varsel> {
+    private suspend fun getVarsler(userToken: String, path: String, preferertSpraak: String? = null): List<Varsel> {
         val authorityToken = tokendingsService.exchangeToken(userToken, targetApp = varselAuthorityClientId)
-        return client.get("$varselAuthorityUrl$path", authorityToken)
+
+        return client.request {
+            url("$varselAuthorityUrl$path")
+            method = HttpMethod.Get
+            header(HttpHeaders.Authorization, "Bearer $authorityToken")
+
+            preferertSpraak?.let { parameter("preferert_spraak", it) }
+        }.body()
     }
 }
 
@@ -67,6 +71,7 @@ data class Varsel(
 
 @Serializable
 data class VarselInnhold(
+    val spraakkode: String,
     val tekst: String,
     val link: String?
 )

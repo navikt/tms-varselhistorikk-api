@@ -35,11 +35,12 @@ class VarselbjelleRoutesTest {
                 val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
                 varselbjellevarsler.beskjeder.size shouldBe 2
                 varselbjellevarsler.oppgaver.size shouldBe 3
-                val beskjed = varselbjellevarsler.beskjeder.first { it.eventId == expectedBeskjed.varselId }
+                val beskjed = varselbjellevarsler.beskjeder.first { it.varselId == expectedBeskjed.varselId }
                 beskjed.varselId shouldBe expectedBeskjed.varselId
                 beskjed.eventId shouldBe expectedBeskjed.varselId
                 beskjed.isMasked shouldBe (expectedBeskjed.innhold == null)
                 beskjed.link shouldBe expectedBeskjed.innhold?.link
+                beskjed.spraakkode shouldBe expectedBeskjed.innhold?.spraakkode
                 beskjed.tekst shouldBe expectedBeskjed.innhold?.tekst
                 beskjed.eksternVarslingKanaler shouldBe expectedBeskjed.eksternVarslingKanaler
                 beskjed.tidspunkt shouldBe expectedBeskjed.opprettet
@@ -76,11 +77,31 @@ class VarselbjelleRoutesTest {
                 beskjed.eventId shouldBe expectedBeskjed.varselId
                 beskjed.isMasked shouldBe (expectedBeskjed.innhold == null)
                 beskjed.link shouldBe expectedBeskjed.innhold?.link
+                beskjed.spraakkode shouldBe expectedBeskjed.innhold?.spraakkode
                 beskjed.tekst shouldBe expectedBeskjed.innhold?.tekst
                 beskjed.eksternVarslingKanaler shouldBe expectedBeskjed.eksternVarslingKanaler
                 beskjed.tidspunkt shouldBe expectedBeskjed.opprettet
                 beskjed.eksternVarslingSendt shouldBe expectedBeskjed.eksternVarslingSendt
                 beskjed.type shouldBe "beskjed"
+            }
+        }
+    }
+
+    @Test
+    fun `bruker preferert spraak i kall til authority`() {
+        testApplication {
+            setupVarselAuthority(expectedSpraakkodeParam = "en")
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            )
+
+            client.get("/bjellevarsler?preferert_spraak=en").apply {
+                status shouldBe HttpStatusCode.OK
+            }
+
+            client.get("/varselbjelle/varsler?preferert_spraak=en").apply {
+                status shouldBe HttpStatusCode.OK
             }
         }
     }

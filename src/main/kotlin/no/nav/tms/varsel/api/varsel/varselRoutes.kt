@@ -3,7 +3,7 @@ package no.nav.tms.varsel.api.varsel
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.request.receive
+import io.ktor.server.request.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -17,27 +17,36 @@ fun Route.varsel(
     varselConsumer: VarselConsumer
 ) {
     get("inaktive") {
-        val inaktiveVarsler = varselConsumer.getInaktiveVarsler(call.userToken)
-
-        call.respond(HttpStatusCode.OK, inaktiveVarsler)
+        varselConsumer.getInaktiveVarsler(
+            userToken = call.userToken,
+            preferertSpraak = call.request.preferertSpraak
+        ).let { inaktiveVarsler ->
+            call.respond(HttpStatusCode.OK, inaktiveVarsler)
+        }
     }
 
     get("aktive") {
-        val aktiveVarsler = varselConsumer.getAktiveVarsler(call.userToken)
-
-        call.respond(HttpStatusCode.OK, aktiveVarsler)
+        varselConsumer.getAktiveVarsler(
+            userToken = call.userToken,
+            preferertSpraak = call.request.preferertSpraak
+        ).let { aktiveVarsler ->
+            call.respond(HttpStatusCode.OK, aktiveVarsler)
+        }
     }
 
     get("antall/aktive") {
-        val antallAktive = varselConsumer.getAktiveVarsler(call.userToken).let {
+        varselConsumer.getAktiveVarsler(
+            userToken = call.userToken,
+            preferertSpraak = null
+        ).let {
             AntallVarsler(
                 beskjeder = it.beskjeder.size,
                 oppgaver = it.oppgaver.size,
                 innbokser = it.innbokser.size
             )
+        }.let { antallAktive ->
+            call.respond(HttpStatusCode.OK, antallAktive)
         }
-
-        call.respond(HttpStatusCode.OK, antallAktive)
     }
 
     post("beskjed/inaktiver") {
@@ -60,3 +69,5 @@ data class InaktiverVarselBody(
 private suspend fun ApplicationCall.varselId(): String = receive<InaktiverVarselBody>().let {
     it.varselId ?: it.eventId ?: throw IllegalArgumentException("Mangler varselId eller eventId i body")
 }
+
+private val ApplicationRequest.preferertSpraak get() = queryParameters["preferert_spraak"]?.lowercase()

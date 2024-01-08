@@ -277,6 +277,25 @@ class VarselRoutesTest {
         postCount shouldBe 1
     }
 
+    @Test
+    fun `bruker preferert spraak i kall til authority`() {
+        testApplication {
+            setupVarselAuthority(expectedSpraakkodeParam = "en")
+            mockVarselApi(
+                varselConsumer = setupVarselConsumer(),
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+            )
+
+            client.get("/aktive?preferert_spraak=en").apply {
+                status shouldBe HttpStatusCode.OK
+            }
+
+            client.get("/inaktive?preferert_spraak=en").apply {
+                status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+
     private fun varselRoutesTest(block: suspend ApplicationTestBuilder.(HttpClient) -> Unit) = testApplication {
         createClient {
             install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {

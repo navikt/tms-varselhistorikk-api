@@ -10,6 +10,7 @@ import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.request.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
@@ -99,6 +100,7 @@ fun ApplicationTestBuilder.setupVarselAuthority(vararg varsler: TestVarsel) = se
 fun ApplicationTestBuilder.setupVarselAuthority(
     aktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
     inaktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
+    expectedSpraakkodeParam: String? = null
 ) {
     externalServices {
         hosts(varselAuthorityTestUrl) {
@@ -109,17 +111,25 @@ fun ApplicationTestBuilder.setupVarselAuthority(
             routing {
                 get("/varsel/sammendrag/aktive") {
                     call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
+
+                    call.request.preferertSpraak shouldBe expectedSpraakkodeParam
+
                     call.respond(HttpStatusCode.OK, aktiveVarslerFromEventHandler)
                 }
 
                 get("/varsel/sammendrag/inaktive") {
                     call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
+
+                    call.request.preferertSpraak shouldBe expectedSpraakkodeParam
+
                     call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
                 }
             }
         }
     }
 }
+
+private val ApplicationRequest.preferertSpraak get() = queryParameters["preferert_spraak"]?.lowercase()
 
 fun ApplicationTestBuilder.setupVarselConsumer(
     tokendingsService: TokendingsService = mockk<TokendingsService>().apply {
