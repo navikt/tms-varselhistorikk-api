@@ -32,11 +32,3 @@ object HttpClientBuilder {
         }
     }
 }
-
-suspend inline fun <reified T> HttpClient.get(url: String, accessToken: String): T = withContext(Dispatchers.IO) {
-    request {
-        url(url)
-        method = HttpMethod.Get
-        header(HttpHeaders.Authorization, "Bearer $accessToken")
-    }.body()
-}
