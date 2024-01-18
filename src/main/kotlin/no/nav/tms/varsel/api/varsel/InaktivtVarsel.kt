@@ -16,6 +16,7 @@ data class InaktivtVarsel(
     val tidspunkt: ZonedDateTime,
     val isMasked: Boolean,
     val tekst: String?,
+    val link: String?,
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>
 ) {
@@ -28,6 +29,7 @@ data class InaktivtVarsel(
             tidspunkt = varsel.opprettet,
             isMasked = varsel.innhold == null,
             tekst = varsel.innhold?.tekst,
+            link = varsel.innhold?.link,
             eksternVarslingSendt = varsel.eksternVarslingSendt,
             eksternVarslingKanaler = varsel.eksternVarslingKanaler
         )
