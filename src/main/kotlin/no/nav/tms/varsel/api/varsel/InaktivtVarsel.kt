@@ -29,7 +29,7 @@ data class InaktivtVarsel(
             tidspunkt = varsel.opprettet,
             isMasked = varsel.innhold == null,
             tekst = varsel.innhold?.tekst,
-            link = varsel.innhold?.tekst,
+            link = varsel.innhold?.link,
             eksternVarslingSendt = varsel.eksternVarslingSendt,
             eksternVarslingKanaler = varsel.eksternVarslingKanaler
         )
