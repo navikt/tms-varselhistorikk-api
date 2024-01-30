@@ -16,11 +16,8 @@ kotlin {
 
 repositories {
     mavenCentral()
-    maven("https://maven.pkg.github.com/navikt/*") {
-        credentials {
-            username = System.getenv("GITHUB_ACTOR")?: "x-access-token"
-            password = System.getenv("GITHUB_TOKEN")?: project.findProperty("githubPassword") as String
-        }
+    maven {
+        url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     }
     mavenLocal()
 }
