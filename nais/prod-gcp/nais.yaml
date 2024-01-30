@@ -34,7 +34,6 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: tms-min-side-proxy
         - application: decorator-next
           namespace: personbruker
           cluster: prod-gcp
