@@ -1,17 +1,20 @@
 package no.nav.tms.varsel.api
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.*
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.testApplication
-import kotlinx.serialization.json.Json
 import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
 import no.nav.tms.varsel.api.varsel.VarselType
 import no.nav.tms.varsel.api.varsel.VarselbjelleVarsler
 import org.junit.jupiter.api.Test
 
 class VarselbjelleRoutesTest {
+
+    private val objectMapper = jacksonObjectMapper().jsonConfig()
 
     @Test
     fun `Varsel har riktige felter`() = testApplication {
@@ -32,7 +35,7 @@ class VarselbjelleRoutesTest {
 
             client.get("/varselbjelle/varsler").apply {
                 status shouldBe HttpStatusCode.OK
-                val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
+                val varselbjellevarsler: VarselbjelleVarsler = bodyFromJson()
                 varselbjellevarsler.beskjeder.size shouldBe 2
                 varselbjellevarsler.oppgaver.size shouldBe 3
                 val beskjed = varselbjellevarsler.beskjeder.first { it.varselId == expectedBeskjed.varselId }
@@ -69,7 +72,7 @@ class VarselbjelleRoutesTest {
 
             client.get("/bjellevarsler").apply {
                 status shouldBe HttpStatusCode.OK
-                val varselbjellevarsler = Json.decodeFromString<VarselbjelleVarsler>(bodyAsText())
+                val varselbjellevarsler: VarselbjelleVarsler = bodyFromJson()
                 varselbjellevarsler.beskjeder.size shouldBe 2
                 varselbjellevarsler.oppgaver.size shouldBe 3
                 val beskjed = varselbjellevarsler.beskjeder.first { it.eventId == expectedBeskjed.varselId }
@@ -105,4 +108,6 @@ class VarselbjelleRoutesTest {
             }
         }
     }
+
+    private suspend inline fun <reified T> HttpResponse.bodyFromJson(): T = objectMapper.readValue(bodyAsText())
 }

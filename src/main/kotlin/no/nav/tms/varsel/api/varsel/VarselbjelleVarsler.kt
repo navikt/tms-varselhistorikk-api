@@ -1,13 +1,9 @@
-@file:UseSerializers(ZonedDateTimeSerializer::class)
 package no.nav.tms.varsel.api.varsel
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import no.nav.tms.varsel.api.ZonedDateTimeSerializer
 import java.time.ZonedDateTime
 
-
-@Serializable
 data class VarselbjelleVarsler(
     val beskjeder: List<VarselbjelleVarsel>,
     val oppgaver: List<VarselbjelleVarsel>,
@@ -27,7 +23,6 @@ data class VarselbjelleVarsler(
     }
 }
 
-@Serializable
 data class VarselbjelleVarsel(
     val eventId: String,
     val varselId: String,

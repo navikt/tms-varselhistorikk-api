@@ -1,15 +1,10 @@
-@file:UseSerializers(ZonedDateTimeSerializer::class)
-
 package no.nav.tms.varsel.api.varsel
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
-import no.nav.tms.varsel.api.ZonedDateTimeSerializer
 import java.time.ZonedDateTime
 
 class VarselConsumer(
@@ -56,7 +51,6 @@ class VarselConsumer(
     }
 }
 
-@Serializable
 data class Varsel(
     val type: VarselType,
     val varselId: String,
@@ -69,7 +63,6 @@ data class Varsel(
     val inaktivert: ZonedDateTime?
 )
 
-@Serializable
 data class VarselInnhold(
     val spraakkode: String,
     val tekst: String,

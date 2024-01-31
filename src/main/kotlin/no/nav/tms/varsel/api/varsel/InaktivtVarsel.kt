@@ -1,13 +1,7 @@
-@file:UseSerializers(ZonedDateTimeSerializer::class)
-
 package no.nav.tms.varsel.api.varsel
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.UseSerializers
-import no.nav.tms.varsel.api.ZonedDateTimeSerializer
 import java.time.ZonedDateTime
 
-@Serializable
 data class InaktivtVarsel(
     val type: VarselType,
     @Deprecated("Use varselId") val eventId: String,

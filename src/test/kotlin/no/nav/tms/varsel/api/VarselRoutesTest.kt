@@ -1,5 +1,6 @@
 package no.nav.tms.varsel.api
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
@@ -31,8 +32,11 @@ import no.nav.tms.varsel.api.varsel.InaktivtVarsel
 import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
+import com.fasterxml.jackson.module.kotlin.readValue
 
 class VarselRoutesTest {
+
+    private val objectMapper = jacksonObjectMapper().jsonConfig()
 
     @Test
     fun `Henter inaktiverte varsler`() = varselRoutesTest { client ->
@@ -55,7 +59,7 @@ class VarselRoutesTest {
         response.status shouldBe HttpStatusCode.OK
         response.status shouldBe HttpStatusCode.OK
 
-        val inaktiveVarsler: List<InaktivtVarsel> = response.body()
+        val inaktiveVarsler: List<InaktivtVarsel> = response.bodyFromJson()
         inaktiveVarsler.size shouldBe 6
         inaktiveVarsler.map { it.type } shouldContainExactlyInAnyOrder listOf(
             VarselType.beskjed,
@@ -98,7 +102,8 @@ class VarselRoutesTest {
         val response = client.get("/aktive")
         response.status shouldBe HttpStatusCode.OK
 
-        val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
+        val aktiveVarsler: AktiveVarsler = response.bodyFromJson()
+
         aktiveVarsler.beskjeder.size shouldBe 1
         aktiveVarsler.oppgaver.size shouldBe 2
         aktiveVarsler.innbokser.size shouldBe 3
@@ -130,7 +135,8 @@ class VarselRoutesTest {
         val response = client.get("/aktive")
         response.status shouldBe HttpStatusCode.OK
 
-        val aktiveVarsler = Json.decodeFromString<AktiveVarsler>(response.bodyAsText())
+        val aktiveVarsler: AktiveVarsler = response.bodyFromJson()
+
         aktiveVarsler.beskjeder.size shouldBe 1
         aktiveVarsler.oppgaver.size shouldBe 1
         aktiveVarsler.innbokser.size shouldBe 0
@@ -165,7 +171,7 @@ class VarselRoutesTest {
 
         response.status shouldBe HttpStatusCode.OK
 
-        val antallVarsler: AntallVarsler = response.body()
+        val antallVarsler: AntallVarsler = response.bodyFromJson()
         antallVarsler.beskjeder shouldBe 1
         antallVarsler.oppgaver shouldBe 2
         antallVarsler.innbokser shouldBe 3
@@ -215,7 +221,7 @@ class VarselRoutesTest {
             authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
         )
 
-        val aktiveVarsler: AktiveVarsler = client.get("/aktive").body()
+        val aktiveVarsler: AktiveVarsler = client.get("/aktive").bodyFromJson()
         aktiveVarsler.beskjeder.size shouldBe 1
         aktiveVarsler.oppgaver.size shouldBe 0
         aktiveVarsler.innbokser.size shouldBe 0
@@ -230,7 +236,7 @@ class VarselRoutesTest {
             eksternVarslingKanaler shouldBe beskjed.eksternVarslingKanaler
         }
 
-        val inaktiveVarsler: List<InaktivtVarsel> = client.get("/inaktive").body()
+        val inaktiveVarsler: List<InaktivtVarsel> = client.get("/inaktive").bodyFromJson()
         inaktiveVarsler.size shouldBe 1
 
         inaktiveVarsler.first().apply {
@@ -303,4 +309,6 @@ class VarselRoutesTest {
             }
         }.let { block(it) }
     }
+
+    private suspend inline fun <reified T> HttpResponse.bodyFromJson(): T = objectMapper.readValue(bodyAsText())
 }

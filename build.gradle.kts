@@ -52,8 +52,8 @@ dependencies {
     testImplementation(Kotest.assertionsCore)
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Ktor.Test.serverTestHost)
-    implementation(TmsKtorTokenSupport.idportenSidecarMock)
-    implementation(TmsKtorTokenSupport.tokenXValidationMock)
+    testImplementation(TmsKtorTokenSupport.idportenSidecarMock)
+    testImplementation(TmsKtorTokenSupport.tokenXValidationMock)
     testImplementation(Mockk.mockk)
 }
 
