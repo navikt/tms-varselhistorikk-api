@@ -42,7 +42,6 @@ spec:
         - application: tms-varsel-authority
   resources:
     limits:
-      cpu: "1"
       memory: 768Mi
     requests:
       cpu: "50m"
