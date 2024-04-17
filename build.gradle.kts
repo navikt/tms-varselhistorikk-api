@@ -2,9 +2,9 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     kotlin("jvm").version(Kotlin.version)
-    kotlin("plugin.serialization").version(Kotlin.version)
 
     id(Shadow.pluginId) version (Shadow.version)
+
     application
 }
 
@@ -72,8 +72,3 @@ tasks {
         }
     }
 }
-
-// TODO: Fjern følgende work around i ny versjon av Shadow-pluginet:
-// Skal være løst i denne: https://github.com/johnrengelman/shadow/pull/612
-project.setProperty("mainClassName", application.mainClass.get())
-apply(plugin = Shadow.pluginId)

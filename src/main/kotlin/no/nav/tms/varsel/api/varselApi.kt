@@ -18,7 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.serialization.jackson.*
-import nav.no.tms.common.metrics.installTmsMicrometerMetrics
+import no.nav.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.idPorten
 import no.nav.tms.token.support.tokenx.validation.TokenXAuthenticator
