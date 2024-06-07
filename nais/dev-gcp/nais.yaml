@@ -8,6 +8,7 @@ metadata:
 spec:
   ingresses:
     - "https://www.intern.dev.nav.no/tms-varsel-api"
+    - "https://www.ansatt.dev.nav.no/tms-varsel-api"
   tokenx:
     enabled: true
   idporten:
