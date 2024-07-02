@@ -37,6 +37,9 @@ spec:
         - application: decorator-next
           namespace: personbruker
           cluster: prod-gcp
+        - application: nav-dekoratoren
+          namespace: personbruker
+          cluster: prod-gcp
     outbound:
       rules:
         - application: tms-varsel-authority
