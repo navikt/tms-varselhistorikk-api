@@ -35,10 +35,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: decorator-next
-          namespace: personbruker
-          cluster: dev-gcp
-        - application: nav-dekoratoren
+        - application: "*"
           namespace: personbruker
           cluster: dev-gcp
     outbound:
