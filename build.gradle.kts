@@ -42,7 +42,6 @@ dependencies {
     implementation(TmsKtorTokenSupport.tokendingsExchange)
     implementation(KotlinLogging.logging)
     implementation(Logstash.logbackEncoder)
-    implementation(Micrometer.registryPrometheus)
     implementation(Prometheus.logback)
     implementation(KtorClientEncoding.clientEncoding)
     implementation(TmsCommonLib.metrics)
