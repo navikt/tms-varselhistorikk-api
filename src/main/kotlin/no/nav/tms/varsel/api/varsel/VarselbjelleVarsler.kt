@@ -9,7 +9,7 @@ data class VarselbjelleVarsler(
     val oppgaver: List<VarselbjelleVarsel>,
 ) {
     companion object {
-        fun fromVarsler(varsler: List<Varsel>): VarselbjelleVarsler {
+        fun fromVarsler(varsler: List<VarselAuthority.Varsel>): VarselbjelleVarsler {
             val groupedVarsler = varsler.groupBy { it.type }.mapValues { (_, varsler) ->
                 varsler.map(VarselbjelleVarsel::fromVarsel)
             }
@@ -36,7 +36,7 @@ data class VarselbjelleVarsel(
     val eksternVarslingKanaler: List<String>
 ) {
     companion object {
-        fun fromVarsel(varsel: Varsel) = with(varsel) {
+        fun fromVarsel(varsel: VarselAuthority.Varsel) = with(varsel) {
             VarselbjelleVarsel(
                 eventId = varselId,
                 varselId = varselId,

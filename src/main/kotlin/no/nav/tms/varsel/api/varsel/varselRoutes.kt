@@ -34,6 +34,15 @@ fun Route.varsel(
         }
     }
 
+    get("alle"){
+        varselConsumer.getAlleVarsler(
+            userToken = call.userToken,
+            preferertSpraak = call.request.preferertSpraak
+        ).let { alleVarsler ->
+            call.respond(HttpStatusCode.OK, alleVarsler)
+        }
+    }
+
     get("antall/aktive") {
         varselConsumer.getAktiveVarsler(
             userToken = call.userToken,
@@ -48,6 +57,7 @@ fun Route.varsel(
             call.respond(HttpStatusCode.OK, antallAktive)
         }
     }
+
 
     post("beskjed/inaktiver") {
         varselConsumer.postInaktiver(varselId = call.varselId(), userToken = call.userToken)

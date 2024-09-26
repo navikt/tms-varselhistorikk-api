@@ -15,7 +15,7 @@ data class InaktivtVarsel(
     val eksternVarslingKanaler: List<String>
 ) {
     companion object {
-        fun fromVarsel(varsel: Varsel) = InaktivtVarsel(
+        fun fromVarsel(varsel: VarselAuthority.Varsel) = InaktivtVarsel(
             type = varsel.type,
             eventId = varsel.varselId,
             varselId = varsel.varselId,
