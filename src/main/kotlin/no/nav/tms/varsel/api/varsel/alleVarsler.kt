@@ -32,8 +32,8 @@ data class Varsel(
 }
 
 data class AlleVarsler(
-    val aktiveVarsler: AktivtVarselV2,
-    val inaktivtVarseler: List<Varsel>,
+    val aktive: AktivtVarselV2,
+    val inaktive: List<Varsel>,
 ) {
     companion object {
         fun fromVarsler(varsler: List<VarselAuthority.Varsel>): AlleVarsler {
@@ -53,8 +53,8 @@ data class AlleVarsler(
                 }
             }
             return AlleVarsler(
-                aktiveVarsler = AktivtVarselV2(aktivBeskjeder, aktivOppgaver),
-                inaktivtVarseler = inaktivtVarseler
+                aktive = AktivtVarselV2(aktivBeskjeder, aktivOppgaver),
+                inaktive = inaktivtVarseler
             )
         }
     }

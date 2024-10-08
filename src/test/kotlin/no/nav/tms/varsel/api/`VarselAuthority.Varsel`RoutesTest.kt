@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -64,9 +63,9 @@ class VarselRoutesTest {
         response.status shouldBe HttpStatusCode.OK
 
         val alleVarsler: AlleVarsler = response.bodyFromJson()
-        alleVarsler.aktiveVarsler.beskjeder.size shouldBe 4
-        alleVarsler.aktiveVarsler.oppgaver.size shouldBe 2
-        alleVarsler.inaktivtVarseler.size shouldBe 6
+        alleVarsler.aktive.beskjeder.size shouldBe 4
+        alleVarsler.aktive.oppgaver.size shouldBe 2
+        alleVarsler.inaktive.size shouldBe 6
 
     }
 
