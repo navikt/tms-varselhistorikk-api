@@ -35,7 +35,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: tms-varseler-frontend
+        - application: tms-varsler-frontend
         - application: "*"
           namespace: personbruker
           cluster: dev-gcp
