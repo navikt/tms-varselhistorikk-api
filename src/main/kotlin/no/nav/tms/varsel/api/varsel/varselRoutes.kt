@@ -58,7 +58,7 @@ fun Route.varsel(
 fun Route.alleVarsler(
     varselConsumer: VarselConsumer
 ) {
-    get("alle"){
+    get("/alle"){
         varselConsumer.getAlleVarsler(
             userToken = call.tokenXUser.tokenString,
             preferertSpraak = call.request.preferertSpraak
