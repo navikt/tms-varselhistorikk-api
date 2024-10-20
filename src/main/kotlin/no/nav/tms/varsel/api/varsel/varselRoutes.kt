@@ -8,10 +8,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
-import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
-import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
 import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 
 fun Route.varsel(
@@ -35,15 +33,6 @@ fun Route.varsel(
         }
     }
 
-    get("alle"){
-        varselConsumer.getAlleVarsler(
-            userToken = call.tokenXUser.tokenString,
-            preferertSpraak = call.request.preferertSpraak
-        ).let { alleVarsler ->
-            call.respond(HttpStatusCode.OK, alleVarsler)
-        }
-    }
-
     get("antall/aktive") {
         varselConsumer.getAktiveVarsler(
             userToken = call.userToken,
@@ -63,6 +52,19 @@ fun Route.varsel(
     post("beskjed/inaktiver") {
         varselConsumer.postInaktiver(varselId = call.varselId(), userToken = call.userToken)
         call.respond(HttpStatusCode.OK)
+    }
+}
+
+fun Route.alleVarsler(
+    varselConsumer: VarselConsumer
+) {
+    get("alle"){
+        varselConsumer.getAlleVarsler(
+            userToken = call.tokenXUser.tokenString,
+            preferertSpraak = call.request.preferertSpraak
+        ).let { alleVarsler ->
+            call.respond(HttpStatusCode.OK, alleVarsler)
+        }
     }
 }
 

@@ -27,6 +27,7 @@ import no.nav.tms.varsel.api.varsel.VarselConsumer
 import no.nav.tms.varsel.api.varsel.bjellevarsler
 import no.nav.tms.varsel.api.varsel.varsel
 import no.nav.tms.varsel.api.varsel.varselbjelle
+import no.nav.tms.varsel.api.varsel.alleVarsler
 
 fun Application.varselApi(
     corsAllowedOrigins: String,
@@ -81,6 +82,7 @@ fun Application.varselApi(
         }
         authenticate(TokenXAuthenticator.name) {
             bjellevarsler(varselConsumer)
+            alleVarsler(varselConsumer)
         }
 
     }
