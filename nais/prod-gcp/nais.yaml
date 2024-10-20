@@ -34,6 +34,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: tms-varseler-frontend
         - application: "*"
           namespace: personbruker
           cluster: prod-gcp
