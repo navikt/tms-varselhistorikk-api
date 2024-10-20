@@ -11,7 +11,8 @@ import io.ktor.server.routing.post
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.serialization.Serializable
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
-
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUser
+import no.nav.tms.token.support.tokenx.validation.user.TokenXUserFactory
 
 fun Route.varsel(
     varselConsumer: VarselConsumer
@@ -36,7 +37,7 @@ fun Route.varsel(
 
     get("alle"){
         varselConsumer.getAlleVarsler(
-            userToken = call.userToken,
+            userToken = call.tokenXUser.tokenString,
             preferertSpraak = call.request.preferertSpraak
         ).let { alleVarsler ->
             call.respond(HttpStatusCode.OK, alleVarsler)
@@ -66,6 +67,8 @@ fun Route.varsel(
 }
 
 private val ApplicationCall.userToken get() = IdportenUserFactory.createIdportenUser(this).tokenString
+private val ApplicationCall.tokenXUser get() = TokenXUserFactory.createTokenXUser(this)
+
 
 @Serializable
 data class AntallVarsler(val beskjeder: Int, val oppgaver: Int, val innbokser: Int)
