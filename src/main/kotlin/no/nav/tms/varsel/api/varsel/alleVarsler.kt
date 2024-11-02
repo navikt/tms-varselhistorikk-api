@@ -36,6 +36,7 @@ data class Varsel(
 }
 
 data class AlleVarsler(
+    val hasMaskedVarsel: Boolean,
     val aktive: AktivtVarselV2,
     val inaktive: List<Varsel>,
 ) {
@@ -44,8 +45,13 @@ data class AlleVarsler(
             val aktivBeskjeder = mutableListOf<Varsel>()
             val aktivOppgaver = mutableListOf<Varsel>()
             val inaktivtVarseler = mutableListOf<Varsel>()
+            var hasMaskedVarsel: Boolean = false
 
             varsler.map {
+                if(it.innhold == null) {
+                    hasMaskedVarsel = true
+                }
+
                 if (it.aktiv) {
                     if (it.type == VarselType.oppgave) {
                         aktivOppgaver.add(Varsel.fromVarsel(it))
@@ -57,6 +63,7 @@ data class AlleVarsler(
                 }
             }
             return AlleVarsler(
+                hasMaskedVarsel = hasMaskedVarsel,
                 aktive = AktivtVarselV2(aktivBeskjeder, aktivOppgaver),
                 inaktive = inaktivtVarseler
             )
