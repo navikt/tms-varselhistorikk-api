@@ -16,18 +16,22 @@ data class Varsel(
 
 ) {
     companion object {
-        fun fromVarsel(varsel: VarselAuthority.Varsel) = Varsel(
-            eventId = varsel.varselId,
-            forstBehandlet = varsel.opprettet,
-            isMasked = varsel.innhold == null,
-            spraakkode = varsel.innhold?.spraakkode,
-            tekst = varsel.innhold?.tekst,
-            link = varsel.innhold?.link,
-            eksternVarslingSendt = varsel.eksternVarslingSendt,
-            eksternVarslingKanaler = varsel.eksternVarslingKanaler,
-            type = if (varsel.type == VarselType.oppgave) VarselType.oppgave else VarselType.beskjed,
-            isArkiverbar = varsel.type == VarselType.beskjed && varsel.aktiv,
-        )
+        fun fromVarsel(varsel: VarselAuthority.Varsel): Varsel {
+            val isMasked = varsel.innhold == null
+
+            return Varsel(
+                eventId = varsel.varselId,
+                forstBehandlet = varsel.opprettet,
+                isMasked = isMasked,
+                spraakkode = varsel.innhold?.spraakkode,
+                tekst = varsel.innhold?.tekst,
+                link = varsel.innhold?.link,
+                eksternVarslingSendt = varsel.eksternVarslingSendt,
+                eksternVarslingKanaler = varsel.eksternVarslingKanaler,
+                type = if (varsel.type == VarselType.oppgave) VarselType.oppgave else VarselType.beskjed,
+                isArkiverbar = varsel.type == VarselType.beskjed && varsel.aktiv && isMasked,
+            )
+        }
     }
 }
 
