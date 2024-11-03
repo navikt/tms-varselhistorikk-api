@@ -12,9 +12,9 @@ data class Varsel(
     val eksternVarslingSendt: Boolean,
     val eksternVarslingKanaler: List<String>,
     val type: VarselType,
-    val isArkiverbar: Boolean,
+    val isInaktiverbar: Boolean,
 
-) {
+    ) {
     companion object {
         fun fromVarsel(varsel: VarselAuthority.Varsel): Varsel {
             val isMasked = varsel.innhold == null
@@ -29,7 +29,7 @@ data class Varsel(
                 eksternVarslingSendt = varsel.eksternVarslingSendt,
                 eksternVarslingKanaler = varsel.eksternVarslingKanaler,
                 type = if (varsel.type == VarselType.oppgave) VarselType.oppgave else VarselType.beskjed,
-                isArkiverbar = varsel.type == VarselType.beskjed && varsel.aktiv && isMasked,
+                isInaktiverbar = varsel.type == VarselType.beskjed && varsel.aktiv && isMasked,
             )
         }
     }
