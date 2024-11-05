@@ -3,7 +3,7 @@ package no.nav.tms.varsel.api.varsel
 import java.time.ZonedDateTime
 
 data class Varsel(
-    @Deprecated("Use varselId") val eventId: String,
+    @Deprecated("Use varselId") val id: String,
     @Deprecated("Use tidspunkt") val forstBehandlet: ZonedDateTime,
     val isMasked: Boolean,
     val spraakkode: String?,
@@ -20,7 +20,7 @@ data class Varsel(
             val isMasked = varsel.innhold == null
 
             return Varsel(
-                eventId = varsel.varselId,
+                id = varsel.varselId,
                 forstBehandlet = varsel.opprettet,
                 isMasked = isMasked,
                 spraakkode = varsel.innhold?.spraakkode,
