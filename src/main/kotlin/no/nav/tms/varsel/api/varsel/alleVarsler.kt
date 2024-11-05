@@ -29,7 +29,7 @@ data class Varsel(
                 eksternVarslingSendt = varsel.eksternVarslingSendt,
                 eksternVarslingKanaler = varsel.eksternVarslingKanaler,
                 type = if (varsel.type == VarselType.oppgave) VarselType.oppgave else VarselType.beskjed,
-                isInaktiverbar = varsel.type == VarselType.beskjed && varsel.aktiv && isMasked,
+                isInaktiverbar = varsel.type == VarselType.beskjed && varsel.aktiv && !isMasked,
             )
         }
     }
