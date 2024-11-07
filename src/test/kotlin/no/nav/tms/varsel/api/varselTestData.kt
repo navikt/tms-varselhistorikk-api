@@ -100,6 +100,7 @@ fun ApplicationTestBuilder.setupVarselAuthority(vararg varsler: TestVarsel) = se
 fun ApplicationTestBuilder.setupVarselAuthority(
     aktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
     inaktiveVarslerFromEventHandler: List<TestVarsel> = emptyList(),
+    alleVarslerFromEventHandler: List<TestVarsel> = aktiveVarslerFromEventHandler + inaktiveVarslerFromEventHandler,
     expectedSpraakkodeParam: String? = null
 ) {
     externalServices {
@@ -123,6 +124,14 @@ fun ApplicationTestBuilder.setupVarselAuthority(
                     call.request.preferertSpraak shouldBe expectedSpraakkodeParam
 
                     call.respond(HttpStatusCode.OK, inaktiveVarslerFromEventHandler)
+                }
+
+                get("/varsel/sammendrag/alle") {
+                    call.request.headers["Authorization"] shouldBe "Bearer authorityToken"
+
+                    call.request.preferertSpraak shouldBe expectedSpraakkodeParam
+
+                    call.respond(HttpStatusCode.OK, alleVarslerFromEventHandler)
                 }
             }
         }

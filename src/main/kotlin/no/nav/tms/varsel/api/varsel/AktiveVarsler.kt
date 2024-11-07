@@ -16,7 +16,7 @@ data class AktivtVarsel(
     val eksternVarslingKanaler: List<String>
 ) {
     companion object {
-        fun fromVarsel(varsel: Varsel) = AktivtVarsel(
+        fun fromVarsel(varsel: VarselAuthority.Varsel) = AktivtVarsel(
             eventId = varsel.varselId,
             varselId = varsel.varselId,
             forstBehandlet = varsel.opprettet,
@@ -37,7 +37,7 @@ data class AktiveVarsler(
     val innbokser: List<AktivtVarsel>
 ) {
     companion object {
-        fun fromVarsler(varsler: List<Varsel>) = AktiveVarsler(
+        fun fromVarsler(varsler: List<VarselAuthority.Varsel>) = AktiveVarsler(
             beskjeder = varsler.filter { it.type == VarselType.beskjed }.map { AktivtVarsel.fromVarsel(it) },
             oppgaver = varsler.filter { it.type == VarselType.oppgave }.map { AktivtVarsel.fromVarsel(it) },
             innbokser = varsler.filter { it.type == VarselType.innboks }.map { AktivtVarsel.fromVarsel(it) }

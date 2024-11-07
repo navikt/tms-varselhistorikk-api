@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -26,17 +25,49 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import no.nav.tms.token.support.idporten.sidecar.mock.LevelOfAssurance
-import no.nav.tms.varsel.api.varsel.AktiveVarsler
-import no.nav.tms.varsel.api.varsel.AntallVarsler
-import no.nav.tms.varsel.api.varsel.InaktivtVarsel
-import no.nav.tms.varsel.api.varsel.VarselType
 import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import com.fasterxml.jackson.module.kotlin.readValue
+import no.nav.tms.varsel.api.varsel.*
 
 class VarselRoutesTest {
 
     private val objectMapper = jacksonObjectMapper().jsonConfig()
+
+    @Test
+    fun `Henter alle varsler, inkative og aktive`() = varselRoutesTest{ client ->
+        val aktiveVarsler = listOf(
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+        )
+        val inaktivtVarsel = listOf(
+            VarselTestData.varsel(type = VarselType.beskjed, aktiv = false),
+            VarselTestData.varsel(type = VarselType.beskjed, aktiv = false),
+            VarselTestData.varsel(type = VarselType.beskjed, aktiv = false),
+            VarselTestData.varsel(type = VarselType.oppgave, aktiv = false),
+            VarselTestData.varsel(type = VarselType.innboks, aktiv = false),
+            VarselTestData.varsel(type = VarselType.innboks,aktiv = false),
+        )
+        setupVarselAuthority(inaktiveVarslerFromEventHandler = inaktivtVarsel, aktiveVarslerFromEventHandler = aktiveVarsler)
+
+        mockVarselApi(
+            varselConsumer = setupVarselConsumer(),
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+        )
+
+        val response = client.get("/alle")
+        response.status shouldBe HttpStatusCode.OK
+
+        val alleVarsler: AlleVarsler = response.bodyFromJson()
+        alleVarsler.aktive.beskjeder.size shouldBe 4
+        alleVarsler.aktive.oppgaver.size shouldBe 2
+        alleVarsler.inaktive.size shouldBe 6
+
+    }
 
     @Test
     fun `Henter inaktiverte varsler`() = varselRoutesTest { client ->

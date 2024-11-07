@@ -28,6 +28,10 @@ class VarselConsumer(
             .let(VarselbjelleVarsler::fromVarsler)
     }
 
+    suspend fun getAlleVarsler(userToken: String, preferertSpraak: String?): AlleVarsler {
+        return getVarsler(userToken, "/varsel/sammendrag/alle", preferertSpraak = preferertSpraak)
+            .let(AlleVarsler::fromVarsler)
+    }
     suspend fun postInaktiver(userToken: String, varselId: String) {
         val authorityToken = tokendingsService.exchangeToken(userToken, varselAuthorityClientId)
 
@@ -38,7 +42,7 @@ class VarselConsumer(
         }
     }
 
-    private suspend fun getVarsler(userToken: String, path: String, preferertSpraak: String? = null): List<Varsel> {
+    private suspend fun getVarsler(userToken: String, path: String, preferertSpraak: String? = null): List<VarselAuthority.Varsel> {
         val authorityToken = tokendingsService.exchangeToken(userToken, targetApp = varselAuthorityClientId)
 
         return client.request {
@@ -51,23 +55,28 @@ class VarselConsumer(
     }
 }
 
-data class Varsel(
-    val type: VarselType,
-    val varselId: String,
-    val aktiv: Boolean,
-    val innhold: VarselInnhold?,
-    val eksternVarslingSendt: Boolean,
-    val eksternVarslingKanaler: List<String>,
-    val opprettet: ZonedDateTime,
-    val aktivFremTil: ZonedDateTime?,
-    val inaktivert: ZonedDateTime?
-)
+object VarselAuthority {
+    data class Varsel(
+        val type: VarselType,
+        val varselId: String,
+        val aktiv: Boolean,
+        val innhold: Innhold?,
+        val eksternVarslingSendt: Boolean,
+        val eksternVarslingKanaler: List<String>,
+        val opprettet: ZonedDateTime,
+        val aktivFremTil: ZonedDateTime?,
+        val inaktivert: ZonedDateTime?
+    )
 
-data class VarselInnhold(
-    val spraakkode: String,
-    val tekst: String,
-    val link: String?
-)
+    data class Innhold(
+        val spraakkode: String,
+        val tekst: String,
+        val link: String?
+    )
+}
+
+
+
 
 enum class VarselType {
     oppgave,
