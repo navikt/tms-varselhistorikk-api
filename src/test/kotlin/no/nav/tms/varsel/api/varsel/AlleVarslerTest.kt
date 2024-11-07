@@ -6,13 +6,13 @@ import org.junit.jupiter.api.Test
 class AlleVarslerTest {
     @Test
     fun `Skal markere maskert varsel i output`() {
-        val incomingVarsel1 = AlleVarslerTestData.incomingVarsel(innhold = null)
-        val incomingVarsel2 = AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave)
-        val incomingVarsel3 = AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, innhold = null)
-        val incomingVarsel4 = AlleVarslerTestData.incomingVarsel()
+        val incomingVarselList = listOf(AlleVarslerTestData.incomingVarsel(innhold = null),
+        AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
+        AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, innhold = null),
+        AlleVarslerTestData.incomingVarsel())
 
 
-        AlleVarsler.fromVarsler(listOf(incomingVarsel1,incomingVarsel2,incomingVarsel3,incomingVarsel4)).apply {
+        AlleVarsler.fromVarsler(incomingVarselList).apply {
             hasMaskedVarsel shouldBe true
             aktive.beskjeder[0].isMasked shouldBe true
             aktive.oppgaver[0].isMasked shouldBe false
