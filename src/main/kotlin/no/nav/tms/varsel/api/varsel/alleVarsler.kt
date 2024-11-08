@@ -18,6 +18,7 @@ data class Varsel(
     companion object {
         fun fromVarsel(varsel: VarselAuthority.Varsel): Varsel {
             val isMasked = varsel.innhold == null
+            val isInaktivertOppgave = varsel.type == VarselType.oppgave && !varsel.aktiv
 
             return Varsel(
                 eventId = varsel.varselId,
@@ -25,7 +26,7 @@ data class Varsel(
                 isMasked = isMasked,
                 spraakkode = varsel.innhold?.spraakkode,
                 tekst = varsel.innhold?.tekst,
-                link = varsel.innhold?.link,
+                link = if(isInaktivertOppgave) null else varsel.innhold?.link,
                 eksternVarslingSendt = varsel.eksternVarslingSendt,
                 eksternVarslingKanaler = varsel.eksternVarslingKanaler,
                 type = if (varsel.type == VarselType.oppgave) VarselType.oppgave else VarselType.beskjed,
