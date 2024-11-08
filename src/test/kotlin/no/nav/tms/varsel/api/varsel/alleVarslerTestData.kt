@@ -8,7 +8,7 @@ object AlleVarslerTestData {
         varselId: String = "123143",
         aktiv: Boolean = true,
         innhold: VarselAuthority.Innhold? = VarselAuthority.Innhold(
-            link = "test . no",
+            link = "www.nav.no/test",
             spraakkode = "nb",
             tekst = "Varsel test tekst"
         ),

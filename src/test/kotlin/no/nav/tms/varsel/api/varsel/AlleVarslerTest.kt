@@ -70,4 +70,31 @@ class AlleVarslerTest {
         }
     }
 
+    @Test
+    fun `Ikke sende med lenke på inaktive oppgaver`() {
+        val incomingVarselList = listOf(
+            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
+            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks),
+            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
+            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
+        )
+
+        AlleVarsler.fromVarsler(incomingVarselList).apply {
+            aktive.oppgaver[0].link shouldBe "www.nav.no/test"
+            aktive.beskjeder.forEach() {
+                it.link shouldBe "www.nav.no/test"
+            }
+            inaktive.forEach() {
+                if(it.type == VarselType.oppgave) {
+                    it.link shouldBe null
+                } else {
+                    it.link shouldBe "www.nav.no/test"
+                }
+            }
+
+        }
+    }
+
 }
