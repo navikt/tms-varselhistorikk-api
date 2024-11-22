@@ -48,6 +48,14 @@ fun Route.varsel(
         }
     }
 
+    get("v2/aktive"){
+        varselConsumer.getAktiveVarslerV2(
+            userToken = call.userToken,
+            preferertSpraak = call.request.preferertSpraak
+        ).let { aktiveVarsler ->
+            call.respond(HttpStatusCode.OK, aktiveVarsler)
+        }
+    }
 
     post("beskjed/inaktiver") {
         varselConsumer.postInaktiver(varselId = call.varselId(), userToken = call.userToken)

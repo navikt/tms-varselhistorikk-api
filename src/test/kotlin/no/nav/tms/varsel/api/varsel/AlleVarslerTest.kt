@@ -1,6 +1,7 @@
 package no.nav.tms.varsel.api.varsel
 
 import io.kotest.matchers.shouldBe
+import no.nav.tms.varsel.api.varsel.v2.AlleVarsler
 import org.junit.jupiter.api.Test
 
 class AlleVarslerTest {
