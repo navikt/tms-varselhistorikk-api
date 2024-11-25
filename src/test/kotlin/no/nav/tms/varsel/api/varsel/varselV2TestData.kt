@@ -2,7 +2,7 @@ package no.nav.tms.varsel.api.varsel
 
 import java.time.ZonedDateTime
 
-object AlleVarslerTestData {
+object VarselV2TestData {
     fun incomingVarsel(
         type: VarselType = VarselType.beskjed,
         varselId: String = "123143",

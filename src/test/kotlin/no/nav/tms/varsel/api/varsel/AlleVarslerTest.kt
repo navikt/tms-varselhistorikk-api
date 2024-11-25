@@ -7,10 +7,10 @@ import org.junit.jupiter.api.Test
 class AlleVarslerTest {
     @Test
     fun `Skal markere maskert varsel i output`() {
-        val incomingVarselList = listOf(AlleVarslerTestData.incomingVarsel(innhold = null),
-        AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-        AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, innhold = null),
-        AlleVarslerTestData.incomingVarsel())
+        val incomingVarselList = listOf(VarselV2TestData.incomingVarsel(innhold = null),
+        VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+        VarselV2TestData.incomingVarsel(type = VarselType.oppgave, innhold = null),
+        VarselV2TestData.incomingVarsel())
 
 
         AlleVarsler.fromVarsler(incomingVarselList).apply {
@@ -24,16 +24,16 @@ class AlleVarslerTest {
     @Test
     fun `Riktig antall varsler i output `() {
         val incomingVarselList = listOf(
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
         )
 
         AlleVarsler.fromVarsler(incomingVarselList).apply {
@@ -46,16 +46,16 @@ class AlleVarslerTest {
     @Test
     fun `Kun aktive og ikke-maskerte beskjeder skal være inaktiverbare`() {
         val incomingVarselList = listOf(
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
         )
 
         AlleVarsler.fromVarsler(incomingVarselList).apply {
@@ -74,12 +74,12 @@ class AlleVarslerTest {
     @Test
     fun `Ikke sende med lenke på inaktive oppgaver`() {
         val incomingVarselList = listOf(
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
-            AlleVarslerTestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave),
+            VarselV2TestData.incomingVarsel(type = VarselType.oppgave, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.beskjed, aktiv = false),
+            VarselV2TestData.incomingVarsel(type = VarselType.innboks, aktiv = false)
         )
 
         AlleVarsler.fromVarsler(incomingVarselList).apply {
