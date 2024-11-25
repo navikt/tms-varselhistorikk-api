@@ -2,7 +2,6 @@ package no.nav.tms.varsel.api.varsel
 
 import io.kotest.matchers.shouldBe
 import no.nav.tms.varsel.api.varsel.v2.AktiveVarslerV2
-import no.nav.tms.varsel.api.varsel.v2.AlleVarsler
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
