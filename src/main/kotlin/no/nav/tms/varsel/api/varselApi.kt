@@ -18,6 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.serialization.jackson.*
+import io.ktor.server.plugins.*
 import no.nav.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.idPorten
@@ -47,12 +48,18 @@ fun Application.varselApi(
     }
 ) {
     val securelog = KotlinLogging.logger("secureLog")
+    val log = KotlinLogging.logger{}
 
     install(DefaultHeaders)
-
     authInstaller()
 
     install(StatusPages) {
+        exception<BadRequestException> { call, cause ->
+            log.error { "400 bad request" }
+            call.respond(
+                HttpStatusCode.BadRequest
+            )
+        }
         exception<Throwable> { call, cause ->
             securelog.warn(cause) { "Kall til ${call.request.uri} feilet: ${cause.message}" }
             call.respond(HttpStatusCode.InternalServerError)
