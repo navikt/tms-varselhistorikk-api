@@ -1,9 +1,9 @@
 package no.nav.tms.varsel.api
 
-import io.ktor.server.engine.applicationEngineEnvironment
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.netty.handler.codec.http.HttpObjectDecoder
+import io.netty.handler.codec.http.HttpServerCodec
 import no.nav.tms.token.support.tokendings.exchange.TokendingsServiceBuilder
 import no.nav.tms.varsel.api.varsel.VarselConsumer
 
@@ -32,5 +32,13 @@ fun main() {
                 port = 8080
             }
         }
-    ).start(wait = true)
+    ) {
+        httpServerCodec = {
+            HttpServerCodec(
+                HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH,
+                16 * 1024, // max header size
+                HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE
+            )
+        }
+    }.start(wait = true)
 }
