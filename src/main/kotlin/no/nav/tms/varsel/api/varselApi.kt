@@ -54,11 +54,9 @@ fun Application.varselApi(
     authInstaller()
 
     install(StatusPages) {
-        exception<BadRequestException> { call, cause ->
-            log.error { "400 bad request" }
-            call.respond(
-                HttpStatusCode.BadRequest
-            )
+        status(HttpStatusCode.BadRequest) { call, _ ->
+            log.error{"400 Bad Request"}
+            call.respond(HttpStatusCode.BadRequest)
         }
         exception<Throwable> { call, cause ->
             securelog.warn(cause) { "Kall til ${call.request.uri} feilet: ${cause.message}" }
