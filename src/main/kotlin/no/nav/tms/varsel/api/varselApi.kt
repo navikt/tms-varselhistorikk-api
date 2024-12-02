@@ -18,7 +18,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.serialization.jackson.*
-import io.ktor.server.plugins.*
+import io.ktor.server.application.hooks.*
 import no.nav.tms.common.metrics.installTmsMicrometerMetrics
 import no.nav.tms.token.support.idporten.sidecar.LevelOfAssurance
 import no.nav.tms.token.support.idporten.sidecar.idPorten
@@ -49,6 +49,16 @@ fun Application.varselApi(
 ) {
     val securelog = KotlinLogging.logger("secureLog")
     val log = KotlinLogging.logger{}
+
+
+    install(createRouteScopedPlugin("test"){
+        on(CallSetup){  call ->
+            log.info { "Kall mottatt" }
+        }
+        on(CallFailed){ call, cause ->
+            log.error { "Kall feilet: $cause" }
+        }
+    })
 
     install(DefaultHeaders)
     authInstaller()
