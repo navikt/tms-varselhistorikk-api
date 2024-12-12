@@ -5,9 +5,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.*
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.route
+import io.ktor.server.routing.*
 import io.ktor.util.pipeline.PipelineContext
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUser
 import no.nav.tms.token.support.idporten.sidecar.user.IdportenUserFactory
@@ -40,8 +38,8 @@ fun Route.bjellevarsler(varselConsumer: VarselConsumer) {
 
 private val ApplicationRequest.preferertSpraak get() = queryParameters["preferert_spraak"]?.lowercase()
 
-private val PipelineContext<Unit, ApplicationCall>.idportenUser: IdportenUser
+private val RoutingContext.idportenUser: IdportenUser
     get() = IdportenUserFactory.createIdportenUser(this.call)
 
-private val PipelineContext<Unit, ApplicationCall>.tokenxUser: TokenXUser
+private val RoutingContext.tokenxUser: TokenXUser
     get() = TokenXUserFactory.createTokenXUser(this.call)

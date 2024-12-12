@@ -93,7 +93,7 @@ fun Application.varselApi(
 typealias TokenXLoa = no.nav.tms.token.support.tokenx.validation.LevelOfAssurance
 
 private fun Application.configureShutdownHook(httpClient: HttpClient) {
-    environment.monitor.subscribe(ApplicationStopping) {
+    monitor.subscribe(ApplicationStopping) {
         httpClient.close()
     }
 }
