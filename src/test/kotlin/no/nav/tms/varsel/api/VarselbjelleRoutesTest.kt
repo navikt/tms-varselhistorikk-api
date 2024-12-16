@@ -30,7 +30,7 @@ class VarselbjelleRoutesTest {
             setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.HIGH)
             )
 
             client.get("/varselbjelle/varsler").apply {
@@ -67,7 +67,7 @@ class VarselbjelleRoutesTest {
             setupVarselAuthority(aktiveVarslerFromEventHandler = varsler)
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.HIGH)
             )
 
             client.get("/bjellevarsler").apply {
@@ -96,7 +96,7 @@ class VarselbjelleRoutesTest {
             setupVarselAuthority(expectedSpraakkodeParam = "en")
             mockVarselApi(
                 varselConsumer = setupVarselConsumer(),
-                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+                authMockInstaller = installAuthenticatedMock(LevelOfAssurance.HIGH)
             )
 
             client.get("/bjellevarsler?preferert_spraak=en").apply {

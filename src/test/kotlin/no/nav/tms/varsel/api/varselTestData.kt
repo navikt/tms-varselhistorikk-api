@@ -180,7 +180,5 @@ fun installAuthenticatedMock(
 
 private fun LevelOfAssurance.toTokenxLoa() = when(this) {
     LevelOfAssurance.SUBSTANTIAL -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.SUBSTANTIAL
-    LevelOfAssurance.LEVEL_3 -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.SUBSTANTIAL
     LevelOfAssurance.HIGH -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.HIGH
-    LevelOfAssurance.LEVEL_4 -> no.nav.tms.token.support.tokenx.validation.mock.LevelOfAssurance.HIGH
 }
