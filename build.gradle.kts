@@ -4,6 +4,8 @@ plugins {
     kotlin("jvm").version(Kotlin.version)
 
     application
+
+    id("no.nav.tms-bundle-jars")
 }
 
 kotlin {
@@ -53,10 +55,8 @@ dependencies {
     testImplementation(Mockk.mockk)
 }
 
-val projectMainClass = "no.nav.tms.varsel.api.ApplicationKt"
-
 application {
-    mainClass.set(projectMainClass)
+    mainClass.set("no.nav.tms.varsel.api.ApplicationKt")
 }
 
 tasks {
@@ -67,24 +67,6 @@ tasks {
             showStackTraces = true
             exceptionFormat = TestExceptionFormat.FULL
             events("passed", "skipped", "failed")
-        }
-    }
-}
-
-tasks {
-    withType<Jar> {
-        archiveBaseName.set("app")
-        manifest {
-            attributes["Main-Class"] = projectMainClass
-            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-                it.name
-            }
-        }
-        doLast {
-            configurations.runtimeClasspath.get().forEach {
-                val file = File("${layout.buildDirectory.get()}/libs/${it.name}")
-                if (!file.exists()) it.copyTo(file)
-            }
         }
     }
 }
