@@ -35,6 +35,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: tms-min-side
         - application: tms-varsler-frontend
         - application: "*"
           namespace: personbruker
