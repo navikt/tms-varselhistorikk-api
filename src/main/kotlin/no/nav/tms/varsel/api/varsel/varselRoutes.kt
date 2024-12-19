@@ -68,6 +68,25 @@ fun Route.alleVarsler(
     }
 }
 
+fun Route.antallAktiveVarsler(
+    varselConsumer: VarselConsumer
+) {
+    get("/ssr/antall/aktive"){
+        varselConsumer.getAktiveVarsler(
+            userToken = call.tokenXUser.tokenString,
+            preferertSpraak = null
+        ).let {
+            AntallVarsler(
+                beskjeder = it.beskjeder.size,
+                oppgaver = it.oppgaver.size,
+                innbokser = it.innbokser.size
+            )
+        }.let { antallAktive ->
+            call.respond(HttpStatusCode.OK, antallAktive)
+        }
+    }
+}
+
 private val ApplicationCall.userToken get() = IdportenUserFactory.createIdportenUser(this).tokenString
 private val ApplicationCall.tokenXUser get() = TokenXUserFactory.createTokenXUser(this)
 
