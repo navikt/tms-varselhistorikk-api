@@ -8,7 +8,6 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
 
-    <appender name="metrics" class="io.prometheus.client.logback.InstrumentedAppender"/>
     <appender name="secureLog" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/secure-logs/secure.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
@@ -24,7 +23,6 @@
 
     <root level="INFO">
         <appender-ref ref="stdout_json"/>
-        <appender-ref ref="metrics"/>
     </root>
     <logger name="secureLog" level="INFO" additivity="false">
         <appender-ref ref="secureLog"/>
