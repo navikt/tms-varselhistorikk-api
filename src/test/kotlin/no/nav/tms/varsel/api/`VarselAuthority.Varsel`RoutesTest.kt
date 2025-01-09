@@ -29,8 +29,10 @@ import org.junit.jupiter.api.Test
 import java.time.ZonedDateTime
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.tms.varsel.api.varsel.*
+import no.nav.tms.varsel.api.varsel.v2.AktiveVarslerV2
+import no.nav.tms.varsel.api.varsel.v2.AlleVarsler
 
-class VarselRoutesTest {
+class VarselRoutesTest{
 
     private val objectMapper = jacksonObjectMapper().jsonConfig()
 
@@ -67,6 +69,31 @@ class VarselRoutesTest {
         alleVarsler.aktive.oppgaver.size shouldBe 2
         alleVarsler.inaktive.size shouldBe 6
 
+    }
+
+    @Test
+    fun `Hent aktive varsler V2`() = varselRoutesTest{ client ->
+        val aktiveVarsler = listOf(
+            VarselTestData.varsel(type = VarselType.beskjed),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.oppgave),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+            VarselTestData.varsel(type = VarselType.innboks),
+        )
+        setupVarselAuthority(aktiveVarslerFromEventHandler = aktiveVarsler)
+
+        mockVarselApi(
+            varselConsumer = setupVarselConsumer(),
+            authMockInstaller = installAuthenticatedMock(LevelOfAssurance.LEVEL_4)
+        )
+
+        val response = client.get("/v2/aktive")
+        response.status shouldBe HttpStatusCode.OK
+
+        val varsler: AktiveVarslerV2 = response.bodyFromJson()
+        varsler.beskjeder.size shouldBe 4
+        varsler.oppgaver.size shouldBe 2
     }
 
     @Test
