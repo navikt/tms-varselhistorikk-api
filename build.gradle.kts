@@ -46,7 +46,7 @@ dependencies {
     implementation(TmsCommonLib.metrics)
     implementation(TmsCommonLib.utils)
 
-    testImplementation(kotlin("test"))
+    testImplementation(JunitPlatform.launcher)
     testImplementation(Kotest.assertionsCore)
     testImplementation(Kotest.runnerJunit5)
     testImplementation(Ktor.Test.serverTestHost)
