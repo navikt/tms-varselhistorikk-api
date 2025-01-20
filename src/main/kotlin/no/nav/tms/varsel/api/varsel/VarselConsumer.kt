@@ -5,6 +5,8 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import no.nav.tms.token.support.tokendings.exchange.TokendingsService
+import no.nav.tms.varsel.api.varsel.v2.AktiveVarslerV2
+import no.nav.tms.varsel.api.varsel.v2.AlleVarsler
 import java.time.ZonedDateTime
 
 class VarselConsumer(
@@ -32,6 +34,12 @@ class VarselConsumer(
         return getVarsler(userToken, "/varsel/sammendrag/alle", preferertSpraak = preferertSpraak)
             .let(AlleVarsler::fromVarsler)
     }
+
+    suspend fun getAktiveVarslerV2(userToken: String, preferertSpraak: String?): AktiveVarslerV2 {
+        return getVarsler(userToken, "/varsel/sammendrag/aktive", preferertSpraak = preferertSpraak)
+            .let (AktiveVarslerV2::fromVarsler)
+    }
+
     suspend fun postInaktiver(userToken: String, varselId: String) {
         val authorityToken = tokendingsService.exchangeToken(userToken, varselAuthorityClientId)
 
